@@ -26,10 +26,15 @@ export function advanceCursor(chars = 1) {
   cursorX += chars;
 }
 
-export function resetCursor() {
+export function newlineCursor() {
   cursorX = 0;
   cursorY += 1;
 }
+
+export function resetCursor() {
+    cursorX = 0;
+    cursorY = 0;
+  }
 
 export function drawCursor() {
   if (!ctx || !visible) return;

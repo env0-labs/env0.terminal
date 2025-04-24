@@ -1,6 +1,6 @@
 // terminalBuffer.js
 
-import { advanceCursor, resetCursor, showCursor } from './terminalCursor.js';
+import { advanceCursor, newlineCursor, resetCursor, showCursor } from './terminalCursor.js';
 let currentLine = 0;
 
 const buffer = [];
@@ -23,7 +23,7 @@ export function writeLine(text) {
     buffer.push(text);
     currentLine = buffer.length - 1;
   }
-  resetCursor();
+  newlineCursor();
   showCursor();
   clampScrollback();
 }
