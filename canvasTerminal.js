@@ -3,6 +3,8 @@
 import { config } from './terminalConfig.js';
 import { setContext, drawFromBuffer } from './terminalRenderer.js';
 import { setCursorContext } from './terminalCursor.js';
+import { startBlink } from './terminalCursor.js';
+
 
 let canvas, ctx;
 let cols = 80, rows = 25;
@@ -50,6 +52,8 @@ function resizeCanvas() {
     setCursorContext(ctx, charWidth, charHeight); // here
       
     redraw();
+    startBlink(); // add this
+
   }
   
   export function redraw() {

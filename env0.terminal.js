@@ -1,5 +1,7 @@
 import { createCanvas, redraw } from './canvasTerminal.js';
 import { writeText, writeLine, clearBuffer } from './terminalBuffer.js';
+import { startBlink } from './terminalCursor.js';
+
 let containerEl = null;
 
 export function initTerminal(container) {

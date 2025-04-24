@@ -1,7 +1,9 @@
 // terminalCursor.js
 
 import { config } from './terminalConfig.js';
+import { redraw } from './canvasTerminal.js'; // add this at top
 
+let blinkInterval = null;
 let cursorX = 0;
 let cursorY = 0;
 let charWidth = 0;
@@ -43,3 +45,13 @@ export function showCursor() {
   visible = true;
   drawCursor();
 }
+
+export function startBlink(rate = 500) {
+    if (blinkInterval) clearInterval(blinkInterval);
+  
+    blinkInterval = setInterval(() => {
+      visible = !visible;
+      redraw(); // redraw clears canvas, redraws text + cursor
+    }, rate);
+  }
+  
