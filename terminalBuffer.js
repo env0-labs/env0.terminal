@@ -1,35 +1,44 @@
 // terminalBuffer.js
 
+import { advanceCursor, resetCursor, showCursor } from './terminalCursor.js';
+let currentLine = 0;
+
 const buffer = [];
 const maxLines = 1000;
 
-let cursorX = 0;
-let cursorY = 0;
-
 export function writeText(text) {
   if (buffer.length === 0) buffer.push('');
-  buffer[cursorY] += text;
-  cursorX += text.length;
+  buffer[currentLine] += text;
+  advanceCursor(text.length);
+  showCursor();
   clampScrollback();
 }
+
 
 export function writeLine(text) {
   if (buffer.length === 0 || (buffer.length === 1 && buffer[0] === '')) {
     buffer[0] = text;
+    currentLine = 0;
   } else {
     buffer.push(text);
+    currentLine = buffer.length - 1;
   }
-  cursorY = buffer.length - 1;
-  cursorX = 0;
+  resetCursor();
+  showCursor();
   clampScrollback();
 }
 
 
+
+
+
 export function clearBuffer() {
   buffer.length = 0;
-  cursorX = 0;
-  cursorY = 0;
+  currentLine = 0;
+  resetCursor();
+  showCursor();
 }
+
 
 export function getVisibleBuffer() {
   return buffer;
