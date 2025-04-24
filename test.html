@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>env0.terminal Test</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: black;
+    }
+    #terminal {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal"></div>
+  <script type="module">
+    import * as terminal from './env0.terminal.js';
+    import { moveCursorTo, showCursor } from './terminalCursor.js';
+  
+    const container = document.getElementById('terminal');
+    terminal.initTerminal(container);
+  
+    // Expose for browser console
+    window.terminal = terminal;
+    window.moveCursorTo = moveCursorTo;
+    window.showCursor = showCursor;
+  </script>
+  
+  
+</body>
+</html>
