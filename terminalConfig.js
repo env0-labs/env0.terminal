@@ -7,4 +7,5 @@ export const config = {
     fgColor: '#FFFFFF',
     linePadding: 8, // <- used for both text and cursor
   };
+
   

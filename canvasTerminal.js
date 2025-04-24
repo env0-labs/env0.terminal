@@ -9,6 +9,9 @@ import { startBlink } from './terminalCursor.js';
 let canvas, ctx;
 let cols = 80, rows = 25;
 let charWidth = 0, charHeight = 0;
+export function getTerminalCols() {
+    return cols;
+  }
 
 export function createCanvas(container) {
     canvas = document.createElement('canvas');
@@ -32,9 +35,9 @@ export function createCanvas(container) {
 
   function measureCharSize() {
     const metrics = ctx.measureText('M');
-    charWidth = 10; // override
+    charWidth = Math.ceil(metrics.width);
     charHeight = config.fontSize;
-    cols = Math.floor(canvas.clientWidth / charWidth);
+    cols = Math.floor(canvas.clientWidth / charWidth); // ← update cols here
     rows = Math.floor(canvas.clientHeight / charHeight);
   }
   
