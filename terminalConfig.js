@@ -2,9 +2,9 @@
 
 export const config = {
     fontSize: 16,
-    fontFamily: 'monospace',
+    fontFamily: 'courier, monospace',
     bgColor: '#000000',
-    fgColor: '#00FF00',
+    fgColor: '#FFFFFF',
     linePadding: 8, // <- used for both text and cursor
   };
   
