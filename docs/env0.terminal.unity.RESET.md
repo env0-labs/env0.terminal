@@ -7,6 +7,14 @@ Use this as the single source of truth for roles, system boundaries, architectur
 
 ---
 
+## 🛠 How to Use This File
+
+1. **Before** implementing any feature, changing architecture, or seeking advice, check this file.
+2. If a feature or approach isn’t described here, **do not automatically treat it as out-of-scope**—always confirm with the project lead (user) before proceeding or discarding.
+3. Any code suggestion must reference the actual file contents—**never rely on summaries or prior versions**. If unsure, **request the file and operate only with what is actually present**.
+
+---
+
 ## 🖥 Terminal Rendering and Input Handling
 
 ### ✔ Core Behavior
@@ -85,5 +93,3 @@ This is essential to avoid:
 - Repeating past mistakes or inconsistencies
 
 **If in doubt, request the file and operate only with what is actually present.**
-
----
