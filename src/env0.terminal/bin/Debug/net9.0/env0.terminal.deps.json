@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "env0.terminal/1.0.0": {
+        "runtime": {
+          "env0.terminal.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "env0.terminal/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

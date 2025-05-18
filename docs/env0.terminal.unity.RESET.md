@@ -1,3 +1,5 @@
+This is an instruction set for you to refer to in our interaction in this chat.
+
 # 🧼 RESET.md — Project Baseline (C# Logic Engine)
 
 This document captures the known-good state of env0.core’s **C# terminal logic engine** as of the latest stable reset.  
