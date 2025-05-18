@@ -1,6 +1,6 @@
 /env0.terminal.unity (Workspace Root)
 ├── /src                    (Core Logic - Pure C#)
-│   └── /env0.core          (Pure C# Logic Engine)
+│   └── /env0.terminal      (Pure C# Logic Engine)
 │       ├── /Terminal       (Terminal Logic)
 │       │   ├── TerminalManager.cs
 │       │   ├── TerminalStateManager.cs

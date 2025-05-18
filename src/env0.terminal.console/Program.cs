@@ -1,5 +1,5 @@
 ﻿using System;
-using env0.terminal.Terminal; // Add this using for your engine namespace
+using env0.terminal.Terminal;
 
 namespace env0.terminal.console
 {
@@ -7,9 +7,14 @@ namespace env0.terminal.console
     {
         static void Main(string[] args)
         {
-            var terminal = new TerminalManager();
+            var stateManager = new TerminalStateManager();
+            var terminal = new TerminalManager(stateManager);
+
             string message = terminal.GetWelcomeMessage();
             Console.WriteLine(message);
+
+            // For now, just display current state as a demo:
+            Console.WriteLine($"Current state: {stateManager.CurrentState}");
         }
     }
 }

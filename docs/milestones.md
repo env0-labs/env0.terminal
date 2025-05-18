@@ -1,15 +1,15 @@
-# env0.core – Project Milestones
+# env0.terminal – Project Milestones
 
-## Milestone 1: Core Structure and Configuration (Foundation)
-- Define and lock the modular directory structure (`Terminal`, `Boot`, `Login`, `Filesystem`, `Network`).
-- Set up `ConfigManager` for centralized configuration:
-  - JSON paths (`BootConfig.json`, `Filesystem.json`, `Devices.json`).
-  - Debug settings (verbose logging, error handling style).
-- Ensure `TerminalManager` and `TerminalStateManager` are cleanly separated:
-  - `TerminalManager` handles text input/output.
-  - `TerminalStateManager` handles state transitions (Boot, Login, Shell).
-- Establish a clear, modular namespace structure:
-  - `env0.core.Terminal`, `env0.core.Boot`, etc.
+## Milestone 1: Core Structure and Configuration (Foundation) ✅ *[Complete]*
+- ✅ Define and lock the modular directory structure (`Terminal`, `Boot`, `Login`, `Filesystem`, `Network`) *[DONE]*
+- ✅ Set up `ConfigManager` for centralized configuration:
+  - ✅ JSON paths (`BootConfig.json`, `Filesystem.json`, `Devices.json`) *[DONE]*
+  - ✅ Debug settings (verbose logging, error handling style) *[STUB/READY]*
+- ✅ Ensure `TerminalManager` and `TerminalStateManager` are cleanly separated:
+  - ✅ `TerminalManager` handles text input/output *[DONE]*
+  - ✅ `TerminalStateManager` handles state transitions (Boot, Login, Shell) *[DONE]*
+- ✅ Establish a clear, modular namespace structure:
+  - ✅ `env0.terminal.Terminal`, `env0.terminal.Boot`, etc. *[DONE]*
 
 ---
 
