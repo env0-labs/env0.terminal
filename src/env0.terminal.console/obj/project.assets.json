@@ -1,11 +1,30 @@
 {
   "version": 3,
   "targets": {
-    "net9.0": {}
+    "net9.0": {
+      "env0.terminal/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/env0.terminal.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/env0.terminal.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "env0.terminal/1.0.0": {
+      "type": "project",
+      "path": "../env0.terminal/env0.terminal.csproj",
+      "msbuildProject": "../env0.terminal/env0.terminal.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net9.0": []
+    "net9.0": [
+      "env0.terminal >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\ewan\\.nuget\\packages\\": {},
@@ -39,7 +58,11 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "D:\\coding\\env0.terminal.unity\\src\\env0.terminal\\env0.terminal.csproj": {
+              "projectPath": "D:\\coding\\env0.terminal.unity\\src\\env0.terminal\\env0.terminal.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
