@@ -1,45 +1,40 @@
 /env0.terminal.unity (Workspace Root)
-├── /src                    (Core Logic - Pure C#)
-│   └── /env0.terminal      (Pure C# Logic Engine)
-│       ├── /Terminal       (Terminal Logic)
+├── /src
+│   └── /env0.terminal
+│       ├── TerminalEngine.cs    (Core public API/facade for all engine functions)
+│       ├── /Terminal
 │       │   ├── TerminalManager.cs
 │       │   ├── TerminalStateManager.cs
 │       │   ├── CommandParser.cs
-│       │   └── /Commands   (Modular Commands)
+│       │   └── /Commands
 │       │       ├── CommandHandler.cs
 │       │       ├── LsCommand.cs
 │       │       ├── CdCommand.cs
 │       │       ├── PingCommand.cs
 │       │       └── NmapCommand.cs
-│       │
-│       ├── /Boot           (Boot Sequence)
+│       ├── /Boot
 │       │   ├── BootSequenceHandler.cs
 │       │   └── BootConfig.json
-│       │
-│       ├── /Login          (User Login System)
+│       ├── /Login
 │       │   ├── LoginHandler.cs
 │       │   ├── UserManager.cs
 │       │   └── UserConfig.json
-│       │
-│       ├── /Filesystem     (Virtual Filesystem Management)
+│       ├── /Filesystem
 │       │   ├── FileSystemManager.cs
 │       │   ├── FileSystemLoader.cs
 │       │   ├── FileSystemEntry.cs
-│       │   └── /Files      (Filesystem JSONs)
+│       │   └── /Files
 │       │       ├── Filesystem_1.json
 │       │       └── Filesystem_10.json
-│       │
-│       └── /Network        (Simulated Network)
+│       └── /Network
 │           ├── NetworkManager.cs
 │           ├── Devices.cs
 │           ├── Device.cs
 │           └── Devices.json
-│
-├── /config                 (Central Config Files)
-│   ├── ConfigManager.cs    (Manages JSON paths and global settings)
-│   └── appsettings.json    (Global settings - debug, display options, etc.)
-│
-└── /docs                   (Documentation and Design Notes)
+├── /config
+│   ├── ConfigManager.cs
+│   └── appsettings.json
+└── /docs
     ├── README.md
     ├── DesignNotes.md
     └── TerminalContracts.md

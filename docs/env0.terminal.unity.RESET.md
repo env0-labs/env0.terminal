@@ -79,6 +79,8 @@ Use this as the single source of truth for roles, system boundaries, architectur
 
 - See `/docs/milestones.md` for milestone breakdowns.
 - Additional architectural references and contracts will be added as the project expands.
+- **NEW:** `TerminalEngine.cs` acts as the single public API and state gatekeeper for the entire logic engine. All input, state transitions, prompt rendering, and shell command handling are routed through this class, ensuring the console app and all future front-ends remain cleanly decoupled from internal module logic.
+
 
 ---
 

@@ -14,14 +14,17 @@
 ---
 
 ## Milestone 2: Boot and Login System (Core Experience)
+- Boot and login sequence modularized, all routed through TerminalEngine public API
 - Build the `BootSequenceHandler` as a clean, modular system:
-  - Loads boot lines from `BootConfig.json`.
-  - Can be skipped with a key press.
-  - Supports future expansion (visual effects, message of the day).
+  - ✅ Loads boot lines from `BootConfig.json`
+  - ✅ Can be skipped with a key press
+  - ✅ Supports future expansion (visual effects, message of the day)
 - Build the `LoginHandler` for local login:
-  - Allows the player to set a username and password.
-  - Loads user data from `UserConfig.json`.
-  - Cleanly transitions to the Shell state on success.
+  - ✅ Prompts for username and password
+  - ⬜ Loads user data from `UserConfig.json` *(planned)*
+  - ✅ Cleanly transitions to the Shell state on success
+- ✅ **TerminalEngine exposes all boot, login, and shell methods as public API for front-ends**
+
 
 ---
 
