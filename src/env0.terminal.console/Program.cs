@@ -1,5 +1,5 @@
 ﻿using System;
-using env0.terminal.Terminal;
+using env0.terminal;
 
 namespace env0.terminal.console
 {
@@ -7,14 +7,27 @@ namespace env0.terminal.console
     {
         static void Main(string[] args)
         {
-            var stateManager = new TerminalStateManager();
-            var terminal = new TerminalManager(stateManager);
+            var engine = new TerminalEngine("src/env0.terminal/Boot/BootConfig.json");
 
-            string message = terminal.GetWelcomeMessage();
-            Console.WriteLine(message);
+            // Boot Sequence
+            engine.RunBoot();
 
-            // For now, just display current state as a demo:
-            Console.WriteLine($"Current state: {stateManager.CurrentState}");
+            // Login Sequence
+            if (engine.GetState() == Terminal.TerminalState.Login)
+            {
+                engine.RunLogin();
+            }
+
+            // Shell Loop
+            while (engine.GetState() == Terminal.TerminalState.Shell)
+            {
+                Console.Write(engine.GetPrompt());
+                var input = Console.ReadLine();
+                var output = engine.ProcessInput(input);
+                Console.WriteLine(output);
+            }
+
+            Console.WriteLine("Session ended. (Not implemented: Shell exit handling)");
         }
     }
 }

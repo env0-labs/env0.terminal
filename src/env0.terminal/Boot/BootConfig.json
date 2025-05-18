@@ -1,0 +1,7 @@
+{
+  "Lines": [
+    { "Text": "Booting env0.terminal...", "DelayMs": 500 },
+    { "Text": "Loading system modules...", "DelayMs": 800 },
+    { "Text": "Initializing network stack...", "DelayMs": 500 }
+  ]
+}
