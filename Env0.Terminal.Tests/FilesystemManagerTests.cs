@@ -180,5 +180,37 @@ public void ChangeDirectory_ParentDirectory_Works()
 }
 
 
+
+
+[Fact]
+public void ChangeDirectory_AbsolutePath_WorksFromRoot()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    string error;
+    var ok = fs.ChangeDirectory("/home/user", out error);
+
+    Assert.True(ok);
+    Assert.Null(error);
+    Assert.Equal("user", fs.CurrentDirectoryName());
 }
 
+[Fact]
+public void ChangeDirectory_AbsolutePath_WorksFromAnyDirectory()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    string error;
+    fs.ChangeDirectory("home/user", out error);
+    Assert.Equal("user", fs.CurrentDirectoryName());
+
+    // Now cd to absolute path from within a subdirectory
+    var ok = fs.ChangeDirectory("/etc", out error);
+
+    Assert.True(ok);
+    Assert.Null(error);
+    Assert.Equal("etc", fs.CurrentDirectoryName());
+}
+}

@@ -51,30 +51,26 @@ public bool ChangeDirectory(string path, out string error)
 
     var target = path.Trim().ToLowerInvariant();
     string[] parts;
-    FileSystemEntry startDir;
+    FileSystemEntry dir;
 
     if (target.StartsWith("/"))
     {
+        dir = root;
         parts = target.Substring(1).Split('/', StringSplitOptions.RemoveEmptyEntries);
-        startDir = root;
     }
     else
     {
+        dir = currentDirectory;
         parts = target.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        startDir = currentDirectory;
     }
 
-    var dir = startDir;
     foreach (var part in parts)
     {
         if (part == ".") continue;
         if (part == "..")
         {
             if (dir.Parent != null)
-            {
                 dir = dir.Parent;
-            }
-            // If already at root, stay at root
             continue;
         }
         if (!dir.IsDirectory || !dir.Children.TryGetValue(part, out var next) || !next.IsDirectory)
@@ -88,6 +84,7 @@ public bool ChangeDirectory(string path, out string error)
     currentDirectory = dir;
     return true;
 }
+
 
 
 public bool GetFileContent(string filename, out string content, out string error)
