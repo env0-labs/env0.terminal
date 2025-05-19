@@ -83,4 +83,77 @@ public class FilesystemManagerTests
         Assert.Contains("etc", items);
         Assert.Equal(2, items.Count);
     }
+
+[Fact]
+public void ChangeDirectory_ToSubdirectory_Works()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    string error;
+    var ok = fs.ChangeDirectory("home", out error);
+
+    Assert.True(ok);
+    Assert.Null(error);
+    Assert.Equal("home", fs.CurrentDirectoryName());
 }
+
+[Fact]
+public void ChangeDirectory_ToInvalidDirectory_Fails()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    string error;
+    var ok = fs.ChangeDirectory("doesnotexist", out error);
+
+    Assert.False(ok);
+    Assert.NotNull(error);
+    Assert.Equal("No such directory: doesnotexist", error);
+}
+
+[Fact]
+public void GetFileContent_ExistingFile_ReturnsContent()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    string content, error;
+    fs.ChangeDirectory("home/user", out _);
+    var ok = fs.GetFileContent("welcome.txt", out content, out error);
+
+    Assert.True(ok);
+    Assert.Null(error);
+    Assert.Equal("Welcome to your basic UNIX machine!", content);
+}
+
+[Fact]
+public void GetFileContent_Directory_ReturnsError()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    fs.ChangeDirectory("home", out _);
+    string content, error;
+    var ok = fs.GetFileContent("user", out content, out error);
+
+    Assert.False(ok);
+    Assert.Equal("user is a directory.", error);
+}
+
+[Fact]
+public void GetFileContent_MissingFile_ReturnsError()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    string content, error;
+    var ok = fs.GetFileContent("nofile.txt", out content, out error);
+
+    Assert.False(ok);
+    Assert.Equal("No such file: nofile.txt", error);
+}
+
+
+}
+

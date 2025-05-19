@@ -7,8 +7,8 @@ public class ParsedCommand
 
     public ParsedCommand(string commandName, string[] arguments)
     {
-        CommandName = commandName;
-        Arguments = arguments;
+        CommandName = commandName ?? throw new ArgumentNullException(nameof(commandName));
+        Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
     }
 }
 
