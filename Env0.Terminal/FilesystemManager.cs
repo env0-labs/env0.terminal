@@ -10,6 +10,8 @@ public class FileSystemEntry
     public Dictionary<string, FileSystemEntry> Children { get; set; } = new Dictionary<string, FileSystemEntry>();
     public string Content { get; set; } = "";
     public string Type { get; set; } = "";
+    public FileSystemEntry Parent { get; set; } // Null for root
+
 }
 
 
@@ -38,51 +40,55 @@ public class FileSystemEntry
             return currentDirectory.Name;
         }
 
-    public bool ChangeDirectory(string path, out string error)
+public bool ChangeDirectory(string path, out string error)
+{
+    error = null;
+    if (string.IsNullOrWhiteSpace(path))
     {
-        error = null;
-        if (string.IsNullOrWhiteSpace(path))
+        error = "No path specified.";
+        return false;
+    }
+
+    var target = path.Trim().ToLowerInvariant();
+    string[] parts;
+    FileSystemEntry startDir;
+
+    if (target.StartsWith("/"))
+    {
+        parts = target.Substring(1).Split('/', StringSplitOptions.RemoveEmptyEntries);
+        startDir = root;
+    }
+    else
+    {
+        parts = target.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        startDir = currentDirectory;
+    }
+
+    var dir = startDir;
+    foreach (var part in parts)
+    {
+        if (part == ".") continue;
+        if (part == "..")
         {
-            error = "No path specified.";
+            if (dir.Parent != null)
+            {
+                dir = dir.Parent;
+            }
+            // If already at root, stay at root
+            continue;
+        }
+        if (!dir.IsDirectory || !dir.Children.TryGetValue(part, out var next) || !next.IsDirectory)
+        {
+            error = $"No such directory: {part}";
             return false;
         }
-
-        // Normalize input and split by /
-        var target = path.Trim().ToLowerInvariant();
-        string[] parts;
-        if (target.StartsWith("/"))
-        {
-            // Absolute: start from root
-            parts = target.Substring(1).Split('/', StringSplitOptions.RemoveEmptyEntries);
-            currentDirectory = root;
-        }
-        else
-        {
-            // Relative: start from current
-            parts = target.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        }
-
-        var dir = currentDirectory;
-        foreach (var part in parts)
-        {
-            if (part == ".") continue;
-            if (part == "..")
-            {
-                // Not implemented: up one level (optional—requires parent tracking)
-                error = "`cd ..` not yet implemented.";
-                return false;
-            }
-            if (!dir.IsDirectory || !dir.Children.TryGetValue(part, out var next) || !next.IsDirectory)
-            {
-                error = $"No such directory: {part}";
-                return false;
-            }
-            dir = next;
-        }
-
-        currentDirectory = dir;
-        return true;
+        dir = next;
     }
+
+    currentDirectory = dir;
+    return true;
+}
+
 
 public bool GetFileContent(string filename, out string content, out string error)
 {

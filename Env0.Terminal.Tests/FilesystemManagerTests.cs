@@ -4,72 +4,76 @@ using Env0.Terminal;
 
 public class FilesystemManagerTests
 {
-    private FileSystemEntry BuildTestFilesystem()
+private FileSystemEntry BuildTestFilesystem()
+{
+    // Build nodes
+    var welcomeTxt = new FileSystemEntry
     {
-        // / (root)
-        // ├── home/
-        // │   └── user/
-        // │       └── welcome.txt
-        // └── etc/
-        //     └── hostname.txt
+        Name = "welcome.txt",
+        IsDirectory = false,
+        Content = "Welcome to your basic UNIX machine!",
+        Type = "file"
+    };
+    var userDir = new FileSystemEntry
+    {
+        Name = "user",
+        IsDirectory = true,
+        Children = new Dictionary<string, FileSystemEntry>
+        {
+            { "welcome.txt", welcomeTxt }
+        },
+        Type = "dir"
+    };
+    var homeDir = new FileSystemEntry
+    {
+        Name = "home",
+        IsDirectory = true,
+        Children = new Dictionary<string, FileSystemEntry>
+        {
+            { "user", userDir }
+        },
+        Type = "dir"
+    };
+    var hostnameTxt = new FileSystemEntry
+    {
+        Name = "hostname.txt",
+        IsDirectory = false,
+        Content = "Basic UNIX Machine",
+        Type = "file"
+    };
+    var etcDir = new FileSystemEntry
+    {
+        Name = "etc",
+        IsDirectory = true,
+        Children = new Dictionary<string, FileSystemEntry>
+        {
+            { "hostname.txt", hostnameTxt }
+        },
+        Type = "dir"
+    };
+    var root = new FileSystemEntry
+    {
+        Name = "root",
+        IsDirectory = true,
+        Children = new Dictionary<string, FileSystemEntry>
+        {
+            { "home", homeDir },
+            { "etc", etcDir }
+        },
+        Type = "dir"
+    };
 
-        var welcomeTxt = new FileSystemEntry
-        {
-            Name = "welcome.txt",
-            IsDirectory = false,
-            Content = "Welcome to your basic UNIX machine!",
-            Type = "file"
-        };
-        var userDir = new FileSystemEntry
-        {
-            Name = "user",
-            IsDirectory = true,
-            Children = new Dictionary<string, FileSystemEntry>
-            {
-                { "welcome.txt", welcomeTxt }
-            },
-            Type = "dir"
-        };
-        var homeDir = new FileSystemEntry
-        {
-            Name = "home",
-            IsDirectory = true,
-            Children = new Dictionary<string, FileSystemEntry>
-            {
-                { "user", userDir }
-            },
-            Type = "dir"
-        };
-        var hostnameTxt = new FileSystemEntry
-        {
-            Name = "hostname.txt",
-            IsDirectory = false,
-            Content = "Basic UNIX Machine",
-            Type = "file"
-        };
-        var etcDir = new FileSystemEntry
-        {
-            Name = "etc",
-            IsDirectory = true,
-            Children = new Dictionary<string, FileSystemEntry>
-            {
-                { "hostname.txt", hostnameTxt }
-            },
-            Type = "dir"
-        };
-        var root = new FileSystemEntry
-        {
-            Name = "root",
-            IsDirectory = true,
-            Children = new Dictionary<string, FileSystemEntry>
-            {
-                { "home", homeDir },
-                { "etc", etcDir }
-            },
-            Type = "dir"
-        };
-        return root;
-    }
+    // Set parent pointers
+    welcomeTxt.Parent = userDir;
+    userDir.Parent = homeDir;
+    homeDir.Parent = root;
+    hostnameTxt.Parent = etcDir;
+    etcDir.Parent = root;
+    root.Parent = null; // Explicitly state root has no parent
+
+    return root;
+}
+
 
     [Fact]
     public void ListCurrentDirectory_AtRoot_ListsHomeAndEtc()
@@ -152,6 +156,27 @@ public void GetFileContent_MissingFile_ReturnsError()
 
     Assert.False(ok);
     Assert.Equal("No such file: nofile.txt", error);
+}
+
+[Fact]
+public void ChangeDirectory_ParentDirectory_Works()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    string error;
+    fs.ChangeDirectory("home/user", out error);
+    Assert.Equal("user", fs.CurrentDirectoryName());
+
+    fs.ChangeDirectory("..", out error);
+    Assert.Equal("home", fs.CurrentDirectoryName());
+
+    fs.ChangeDirectory("..", out error);
+    Assert.Equal("root", fs.CurrentDirectoryName());
+
+    // Attempt to go above root
+    fs.ChangeDirectory("..", out error);
+    Assert.Equal("root", fs.CurrentDirectoryName());
 }
 
 
