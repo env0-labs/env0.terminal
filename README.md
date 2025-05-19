@@ -74,12 +74,20 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 
 ---
 
-## 📝 Development Workflow
+## 📝 Development Cycle
 
-- Update [env0.terminal.unity_tasklist.md](./docs/env0.terminal.unity_tasklist.md) after every major feature or test.
-- All JSON schemas are validated at load—see REFERENCE.md for failure/fallback rules.
-- “Hostile User” test suite covers edge and adversarial cases.
-- Front-end integration (Unity, CLI, etc.) is *not* included in this repo.
+The following cycle is strictly enforced for all core and feature work:
+1. Decide the next feature or fix
+2. Build the feature (code, logic, or config)
+3. Build the test (unit/integration/hostile case as appropriate)
+4. Test and debug until all automated tests pass
+    - Includes standard and hostile/psychotic edge-case suites
+    - Regularly interrogate and expand hostile test coverage
+5. Modify for user test in Playground (manual verification, if relevant)
+6. Commit once happy (atomic, meaningful commit; no “test/fix/test/fix” in main)
+7. Update the Tasklist (env0.terminal.unity_tasklist.md)
+
+This discipline is non-negotiable. All contributors and future development must adhere.
 
 ---
 

@@ -5,6 +5,10 @@ Update after each feature completion or green test run.
 
 ---
 
+_Note: This file is always updated as the final step of the enforced development cycle. See REFERENCE.md for full details._
+
+---
+
 ## ✅ Completed
 
 - [x] **Project structure:**  
