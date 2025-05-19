@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Env0.Terminal
+namespace Env0.Terminal.Filesystem
 {
 public class FileSystemEntry
 {

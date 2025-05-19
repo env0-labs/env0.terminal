@@ -1,5 +1,5 @@
 using Xunit;
-using Env0.Terminal; // Make sure this matches your main project namespace
+using Env0.Terminal.Terminal; // Make sure this matches your main project namespace
 
 public class TerminalStateManagerTests
 {

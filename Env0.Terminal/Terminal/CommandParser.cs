@@ -1,4 +1,4 @@
-namespace Env0.Terminal
+namespace Env0.Terminal.Terminal
 {
 public class ParsedCommand
 {

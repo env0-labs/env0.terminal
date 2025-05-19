@@ -1,5 +1,5 @@
 using Xunit;
-using Env0.Terminal; // Change if your namespace is different
+using Env0.Terminal.Terminal; // Change if your namespace is different
 
 public class CommandParserTests
 {

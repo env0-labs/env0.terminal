@@ -1,6 +1,6 @@
 using Xunit;
 using System.Collections.Generic;
-using Env0.Terminal;
+using Env0.Terminal.Filesystem;
 
 public class FilesystemManagerTests
 {

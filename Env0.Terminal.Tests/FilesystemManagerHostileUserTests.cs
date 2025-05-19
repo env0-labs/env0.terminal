@@ -1,5 +1,5 @@
 using Xunit;
-using Env0.Terminal;
+using Env0.Terminal.Filesystem;
 using System;
 using System.Collections.Generic;
 
