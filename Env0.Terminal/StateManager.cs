@@ -1,3 +1,5 @@
+namespace Env0.Terminal
+{
 public enum TerminalState
 {
     Boot,
@@ -15,4 +17,5 @@ public class TerminalStateManager
         // Add basic logic, maybe restrict illegal transitions later
         CurrentState = newState;
     }
+}
 }
