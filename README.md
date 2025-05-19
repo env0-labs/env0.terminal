@@ -22,14 +22,23 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
     - docs/
         - env0.terminal.unity_Overview.md
         - env0.terminal.unity_Q&A.txt
-        - env0.terminal.unity_RESET.md
+        - env0.terminal.unity_REFERENCE.md
         - env0.terminal.unity_tasklist.md
     - Env0.Terminal/
+        - Config/
+            - Jsons/
+                - BootConfig.json
+            - Pocos/
+                - BootConfig.cs
+            - JsonLoader.cs
+            - AssemblyInfo.cs
+        - Filesystem/
+            - FilesystemManager.cs
+        - Terminal/
+            - CommandParser.cs
+            - StateManager.cs
         - Class1.cs
-        - CommandParser.cs
         - Env0.Terminal.csproj
-        - FilesystemManager.cs
-        - StateManager.cs
         - bin/...
         - obj/...
     - Env0.Terminal.Playground/
@@ -39,18 +48,16 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
         - obj/...
     - Env0.Terminal.Tests/
         - CommandParserTests.cs
-        - Env0.Terminal.Tests.csproj
         - FilesystemManagerHostileUserTests.cs
         - FilesystemManagerTests.cs
+        - JsonLoaderTests.cs
         - StateManagerTests.cs
-        - UnitTest1.cs
+        - Env0.Terminal.Tests.csproj
         - bin/...
         - obj/...
     - .gitignore
     - Env0.Terminal.sln
     - env0.terminal.unity.code-workspace
-
-
 
 ---
 
@@ -63,14 +70,14 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 - **Strict, Linux-like errors.** Predictable error handling, no hand-holding or auto-correction.
 - **Session-only state.** No persistence; every run is a clean session unless handled by the consumer.
 - **Debug mode is dev-only.** Toggled by command, never shipped in production builds.
-- **RESET.md is law.** If you’re unsure, check [RESET.md](./env0.terminal.unity_RESET.md)—it is always the source of truth.
+- **REFERENCE.md is law.** If you’re unsure, check [REFERENCE.md](./docs/env0.terminal.unity_REFERENCE.md)—it is always the source of truth.
 
 ---
 
 ## 📝 Development Workflow
 
-- Update [env0.terminal.unity_tasklist.md](./env0.terminal.unity_tasklist.md) after every major feature or test.
-- All JSON schemas are validated at load—see RESET.md for failure/fallback rules.
+- Update [env0.terminal.unity_tasklist.md](./docs/env0.terminal.unity_tasklist.md) after every major feature or test.
+- All JSON schemas are validated at load—see REFERENCE.md for failure/fallback rules.
 - “Hostile User” test suite covers edge and adversarial cases.
 - Front-end integration (Unity, CLI, etc.) is *not* included in this repo.
 
@@ -90,8 +97,8 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 ## 📄 License
 
 Copyright © Ewan Matheson  
-MIT License 
+MIT License
 
 ---
 
-**For all implementation rules and edge cases, RESET.md is canonical. When in doubt, check there or ask.**
+**For all implementation rules and edge cases, REFERENCE.md is canonical. When in doubt, check there or ask.**
