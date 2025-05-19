@@ -1,0 +1,59 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# VS Code workspace
+.vscode/
+.history/
+
+# Rider IDE
+.idea/
+*.sln.iml
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Dotnet tools
+*.nupkg
+*.snupkg
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+!**/packages/build/
+!**/packages/repositories.config
+
+# Coverage tools
+coverage*.json
+coverage*.xml
+coverage*.info
+.coverage
+*.coverage
+*.coveragexml
+
+# StyleCop
+StyleCopReport.xml
+
+# Backup & temp files
+*~
+*.bak
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Others
+_ReSharper*/
+*.DotSettings.user
