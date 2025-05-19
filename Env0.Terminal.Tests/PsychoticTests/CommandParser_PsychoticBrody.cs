@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Text;
 
+[Trait("TestType", "Psychotic")]
 public class PsychoticCommandParserTests
 {
     [Fact(Skip = "Terminal input is keyboard-only; users cannot enter Unicode/control chars.")]

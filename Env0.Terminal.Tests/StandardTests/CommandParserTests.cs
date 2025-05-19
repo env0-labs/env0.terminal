@@ -1,6 +1,7 @@
 using Xunit;
 using Env0.Terminal.Terminal; // Change if your namespace is different
 
+[Trait("TestType", "Critical")]
 public class CommandParserTests
 {
     [Fact]

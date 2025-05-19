@@ -5,6 +5,7 @@ using Env0.Terminal.Config.Pocos;
 
 namespace Env0.Terminal.Tests
 {
+    [Trait("TestType", "Critical")]
     public class JsonLoaderTests
     {
         private const string TestDataDir = "TestData";

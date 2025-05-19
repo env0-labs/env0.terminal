@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 public class FilesystemManagerHostileUserTests
 {
+    [Trait("TestType", "Psychotic")]
     private FileSystemEntry MakeMinimalRoot()
     {
         return new FileSystemEntry

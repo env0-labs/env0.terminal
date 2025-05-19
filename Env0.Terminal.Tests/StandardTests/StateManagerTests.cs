@@ -1,6 +1,7 @@
 using Xunit;
 using Env0.Terminal.Terminal; // Make sure this matches your main project namespace
 
+[Trait("TestType", "Critical")]
 public class TerminalStateManagerTests
 {
     [Fact]

@@ -8,6 +8,7 @@ namespace Env0.Terminal.Tests
 {
     public class PsychoticFilesystemManagerTests
     {
+        [Trait("TestType", "Psychotic")]
         // Helper to make a directory cycle
         private FileSystemEntry MakeCycle()
         {

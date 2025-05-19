@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Env0.Terminal.Tests
 {
+    [Trait("TestType", "Psychotic")]
     public class PsychoticTerminalStateManagerTests
     {
         [Fact]

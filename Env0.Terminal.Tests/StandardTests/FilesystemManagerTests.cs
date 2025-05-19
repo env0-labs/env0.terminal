@@ -2,6 +2,7 @@ using Xunit;
 using System.Collections.Generic;
 using Env0.Terminal.Filesystem;
 
+[Trait("TestType", "Critical")]
 public class FilesystemManagerTests
 {
 private FileSystemEntry BuildTestFilesystem()
