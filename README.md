@@ -18,48 +18,38 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 
 ## 🛠️ Project Structure
 
-src/
-└── env0.terminal
-├── Boot/
-│ ├── BootSequenceHandler.cs
-│ └── BootConfig.json
-├── Login/
-│ ├── LoginHandler.cs
-│ ├── UserManager.cs
-│ └── UserConfig.json
-├── Filesystem/
-│ ├── FileSystemManager.cs
-│ ├── FileSystemLoader.cs
-│ ├── FileSystemEntry.cs
-│ └── Files/
-│ ├── Filesystem_1.json
-│ └── Filesystem_11.json (safe mode)
-├── Network/
-│ ├── NetworkManager.cs
-│ ├── Devices.cs
-│ ├── Device.cs
-│ └── Devices.json
-├── Terminal/
-│ ├── TerminalManager.cs
-│ ├── TerminalStateManager.cs
-│ └── CommandParser.cs
-├── Commands/
-│ ├── CommandHandler.cs
-│ ├── LsCommand.cs
-│ ├── CdCommand.cs
-│ ├── CatCommand.cs
-│ ├── ReadCommand.cs
-│ ├── EchoCommand.cs
-│ ├── PingCommand.cs
-│ ├── NmapCommand.cs
-│ ├── SshCommand.cs
-│ ├── ClearCommand.cs
-│ └── SudoCommand.cs
-├── Tests/
-│ ├── Standard test suite (xUnit)
-│ └── Hostile edge case suite
-└── Playground/
-└── Interactive console app for hands-on testing
+- /
+    - docs/
+        - env0.terminal.unity_Overview.md
+        - env0.terminal.unity_Q&A.txt
+        - env0.terminal.unity_RESET.md
+        - env0.terminal.unity_tasklist.md
+    - Env0.Terminal/
+        - Class1.cs
+        - CommandParser.cs
+        - Env0.Terminal.csproj
+        - FilesystemManager.cs
+        - StateManager.cs
+        - bin/...
+        - obj/...
+    - Env0.Terminal.Playground/
+        - Env0.Terminal.Playground.csproj
+        - Program.cs
+        - bin/...
+        - obj/...
+    - Env0.Terminal.Tests/
+        - CommandParserTests.cs
+        - Env0.Terminal.Tests.csproj
+        - FilesystemManagerHostileUserTests.cs
+        - FilesystemManagerTests.cs
+        - StateManagerTests.cs
+        - UnitTest1.cs
+        - bin/...
+        - obj/...
+    - .gitignore
+    - Env0.Terminal.sln
+    - env0.terminal.unity.code-workspace
+
 
 
 ---
