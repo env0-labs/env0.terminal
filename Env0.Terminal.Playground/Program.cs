@@ -10,14 +10,14 @@ class Program
         {
             Name = "root",
             IsDirectory = true,
-            Children = new System.Collections.Generic.Dictionary<string, FileSystemEntry>(),
+            Children = new System.Collections.Generic.Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase),
             Type = "dir"
         };
         var home = new FileSystemEntry
         {
             Name = "home",
             IsDirectory = true,
-            Children = new System.Collections.Generic.Dictionary<string, FileSystemEntry>(),
+            Children = new System.Collections.Generic.Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase),
             Type = "dir",
             Parent = root
         };
@@ -25,18 +25,11 @@ class Program
         {
             Name = "user",
             IsDirectory = true,
-            Children = new System.Collections.Generic.Dictionary<string, FileSystemEntry>(),
+            Children = new System.Collections.Generic.Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase),
             Type = "dir",
             Parent = home
         };
-        var welcomeTxt = new FileSystemEntry
-        {
-            Name = "welcome.txt",
-            IsDirectory = false,
-            Content = "Welcome to your basic UNIX machine!",
-            Type = "file",
-            Parent = user
-        };
+
         // Wire up the tree
         user.Children.Add("welcome.txt", welcomeTxt);
         home.Children.Add("user", user);

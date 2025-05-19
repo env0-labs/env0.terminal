@@ -6,7 +6,6 @@ public class FilesystemManagerTests
 {
 private FileSystemEntry BuildTestFilesystem()
 {
-    // Build nodes
     var welcomeTxt = new FileSystemEntry
     {
         Name = "welcome.txt",
@@ -18,7 +17,7 @@ private FileSystemEntry BuildTestFilesystem()
     {
         Name = "user",
         IsDirectory = true,
-        Children = new Dictionary<string, FileSystemEntry>
+        Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase)
         {
             { "welcome.txt", welcomeTxt }
         },
@@ -28,7 +27,7 @@ private FileSystemEntry BuildTestFilesystem()
     {
         Name = "home",
         IsDirectory = true,
-        Children = new Dictionary<string, FileSystemEntry>
+        Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase)
         {
             { "user", userDir }
         },
@@ -45,7 +44,7 @@ private FileSystemEntry BuildTestFilesystem()
     {
         Name = "etc",
         IsDirectory = true,
-        Children = new Dictionary<string, FileSystemEntry>
+        Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase)
         {
             { "hostname.txt", hostnameTxt }
         },
@@ -55,7 +54,7 @@ private FileSystemEntry BuildTestFilesystem()
     {
         Name = "root",
         IsDirectory = true,
-        Children = new Dictionary<string, FileSystemEntry>
+        Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase)
         {
             { "home", homeDir },
             { "etc", etcDir }
@@ -69,10 +68,11 @@ private FileSystemEntry BuildTestFilesystem()
     homeDir.Parent = root;
     hostnameTxt.Parent = etcDir;
     etcDir.Parent = root;
-    root.Parent = null; // Explicitly state root has no parent
+    root.Parent = null;
 
     return root;
 }
+
 
 
     [Fact]
@@ -213,4 +213,47 @@ public void ChangeDirectory_AbsolutePath_WorksFromAnyDirectory()
     Assert.Null(error);
     Assert.Equal("etc", fs.CurrentDirectoryName());
 }
+
+[Fact]
+public void ChangeDirectory_CaseInsensitive_Works()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    string error;
+
+Console.WriteLine($"Root children: {string.Join(", ", root.Children.Keys)}");
+Console.WriteLine($"Current dir: {fs.CurrentDirectoryName()}");
+
+
+    // Use intentionally weird casing to prove lookups are case-insensitive
+    Assert.True(fs.ChangeDirectory("HoMe/UsEr", out error));
+    Assert.Equal("user", fs.CurrentDirectoryName());
+
+    Assert.True(fs.ChangeDirectory("..", out error));
+    Assert.Equal("home", fs.CurrentDirectoryName());
+
+    Assert.True(fs.ChangeDirectory("/HOME", out error));
+    Assert.Equal("home", fs.CurrentDirectoryName());
+
+    Assert.True(fs.ChangeDirectory("/Etc", out error));
+    Assert.Equal("etc", fs.CurrentDirectoryName());
+
+    Console.WriteLine($"Root children: {string.Join(", ", root.Children.Keys)}");
+    Console.WriteLine($"Current dir: {fs.CurrentDirectoryName()}");
+}
+
+[Fact]
+public void GetFileContent_CaseInsensitive_Works()
+{
+    var root = BuildTestFilesystem();
+    var fs = new FilesystemManager(root);
+
+    string content, error;
+    fs.ChangeDirectory("home/user", out _);
+    Assert.True(fs.GetFileContent("WELCOME.TXT", out content, out error));
+    Assert.Equal("Welcome to your basic UNIX machine!", content);
+}
+
+
 }

@@ -7,7 +7,7 @@ public class FileSystemEntry
 {
     public string Name { get; set; } = "";
     public bool IsDirectory { get; set; }
-    public Dictionary<string, FileSystemEntry> Children { get; set; } = new Dictionary<string, FileSystemEntry>();
+    public Dictionary<string, FileSystemEntry> Children { get; set; } = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase);
     public string Content { get; set; } = "";
     public string Type { get; set; } = "";
     public FileSystemEntry Parent { get; set; } // Null for root
@@ -49,7 +49,7 @@ public bool ChangeDirectory(string path, out string error)
         return false;
     }
 
-    var target = path.Trim().ToLowerInvariant();
+    var target = path.Trim();
     string[] parts;
     FileSystemEntry dir;
 
@@ -97,7 +97,7 @@ public bool GetFileContent(string filename, out string content, out string error
         return false;
     }
 
-    var name = filename.Trim().ToLowerInvariant();
+    var name = filename.Trim();
 
     if (!currentDirectory.IsDirectory || !currentDirectory.Children.TryGetValue(name, out var entry))
     {
