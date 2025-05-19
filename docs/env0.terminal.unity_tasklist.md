@@ -13,29 +13,46 @@ Update this list every time a new feature is finished and covered by tests.
 - [x] **CommandParser:** Command parsing and normalization (case-insensitive, dangerous char filtering)
 - [x] **FilesystemManager:** Full read-only virtual FS with:
     - [x] Directory listing (`ls`)
-    - [x] Directory navigation (`cd`)
-    - [x] Parent directory traversal (`cd ..`)
-    - [x] Absolute path navigation (`cd /path`)
+    - [x] Directory navigation (`cd`, `cd ..`, `cd /path`)
+    - [x] Parent directory traversal
+    - [x] Absolute/relative path navigation
     - [x] Case-insensitive lookup for all files and directories
     - [x] File content read (`cat`)
     - [x] Error/edge handling for invalid/empty/missing files, directory/file confusion
-- [x] **Test coverage:** 20/20 core tests, including adversarial and edge cases
-- [x] **Playground console app:** Manual “smoke test” for navigation and file reading
+    - [x] Empty directories, empty files, large file (>1000 lines) error
+    - [x] File extension/type handling (.sh, .bin, unsupported, etc.)
+    - [x] Directory/file name validation (no dot, dot-dot, slashes, or duplicates)
+- [x] **Test coverage:**
+    - [x] Standard test suite (20/20 green) for all core FS logic
+    - [x] **Hostile User Test Suite** (`FilesystemManagerHostileUserTests.cs`):  
+          - 27/27 “maniacs only” tests green  
+          - Includes name collisions, path traversal, invalid names, edge-case validation, and more
+- [x] **Playground console app:**  
+      - Live interactive terminal for hands-on navigation and file access
 
 ---
 
 ## 🔜 In Progress / Next Up
 
-- [ ] More adversarial and edge-case tests for FilesystemManager
-- [ ] FilesystemManager: Support for empty directories, invalid names, directory/file name clashes
-- [ ] FilesystemManager: Loading from JSON (future, when needed)
+- [ ] JSON loading and validation:
+    - [ ] Loader must enforce all name/structure rules (already reflected in test)
+    - [ ] Graceful fallback to safe-mode FS if JSON is corrupt/missing
 - [ ] LoginHandler: Local and SSH login with user/session state
 - [ ] CommandHandler: Command dispatch and error output
 - [ ] Integration: Connect all systems for real “terminal” flow
+- [ ] Future (horror/experimental branch):  
+      - Recursive/cyclical folder logic
+      - Cursed/haunted directory features
 
 ---
 
 ## 📝 Notes
+
+- Directory/file name validation is now active:  
+  - Names must not be empty, dot, dot-dot, or contain slashes
+  - Adding a duplicate (case-insensitive) throws exception
+- All “actively hostile user” edge cases now handled and tested
+- FS manager is robust and future-proofed for future cursed logic experiments
 
 - Update this file **every time you commit a major feature or pass a test milestone**
 - Use as a single source of truth for migrating to new chat sessions or onboarding contributors
