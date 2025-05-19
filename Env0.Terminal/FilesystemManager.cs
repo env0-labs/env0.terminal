@@ -11,9 +11,17 @@ public class FileSystemEntry
     public string Content { get; set; } = "";
     public string Type { get; set; } = "";
     public FileSystemEntry Parent { get; set; } // Null for root
-
+    public static void ValidateFSName(string name)
+{
+    if (string.IsNullOrWhiteSpace(name))
+        throw new ArgumentException("Name cannot be empty or whitespace.");
+    if (name == "." || name == "..")
+        throw new ArgumentException("Dot and dot-dot are reserved names.");
+    if (name.Contains("/") || name.Contains("\\"))
+        throw new ArgumentException("Names cannot contain slashes.");
+    // Add any other rules here, e.g., length > 256, Unicode, etc.
 }
-
+}
 
     public class FilesystemManager
     {

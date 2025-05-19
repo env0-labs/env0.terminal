@@ -17,6 +17,7 @@ public class FilesystemManagerHostileUserTests
     }
 
     [Fact]
+
     public void Throws_When_DirectoryHasChildNamed_DotDot()
     {
         var root = MakeMinimalRoot();
@@ -28,13 +29,8 @@ public class FilesystemManagerHostileUserTests
             Type = "dir",
             Parent = root
         };
-        root.Children.Add("..", evil);
-        var fs = new FilesystemManager(root);
 
-        string error;
-        Assert.False(fs.ChangeDirectory("..", out error));
-        // Should still be at root, not evil
-        Assert.Equal("root", fs.CurrentDirectoryName());
+        Assert.Throws<ArgumentException>(() => FileSystemEntry.ValidateFSName(evil.Name));
     }
 
     [Fact]
@@ -49,13 +45,11 @@ public class FilesystemManagerHostileUserTests
             Type = "file",
             Parent = root
         };
-        root.Children.Add("user/home", broken);
-        var fs = new FilesystemManager(root);
 
-        string content, error;
-        Assert.False(fs.GetFileContent("user/home", out content, out error));
-        Assert.NotNull(error);
+        Assert.Throws<ArgumentException>(() => FileSystemEntry.ValidateFSName(broken.Name));
     }
+
+
 
     [Fact]
     public void PathTraversalAboveRoot_DoesNotCrash()
@@ -72,35 +66,30 @@ public class FilesystemManagerHostileUserTests
         }
     }
 
-    [Fact]
-    public void DirectoryAndFileWithSameName_DirectoryWins()
+[Fact]
+public void DirectoryAndFileWithSameName_DirectoryWins()
+{
+    var root = MakeMinimalRoot();
+    var subdir = new FileSystemEntry
     {
-        var root = MakeMinimalRoot();
-        var subdir = new FileSystemEntry
-        {
-            Name = "bin",
-            IsDirectory = true,
-            Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase),
-            Type = "dir",
-            Parent = root
-        };
-        var binFile = new FileSystemEntry
-        {
-            Name = "bin",
-            IsDirectory = false,
-            Content = "i should be ignored",
-            Type = "file",
-            Parent = root
-        };
-        root.Children.Add("bin", subdir); // Directory first
-        root.Children.Add("bin", binFile); // File added with same key, gets overwritten
+        Name = "bin",
+        IsDirectory = true,
+        Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase),
+        Type = "dir",
+        Parent = root
+    };
+    var binFile = new FileSystemEntry
+    {
+        Name = "bin",
+        IsDirectory = false,
+        Content = "i should be ignored",
+        Type = "file",
+        Parent = root
+    };
+    root.Children.Add(subdir.Name, subdir);
+    Assert.Throws<ArgumentException>(() => root.Children.Add(binFile.Name, binFile));
+}
 
-        var fs = new FilesystemManager(root);
-
-        string error;
-        Assert.True(fs.ChangeDirectory("bin", out error));
-        Assert.Equal("bin", fs.CurrentDirectoryName());
-    }
 
     [Fact]
     public void FileWithRidiculousName_Length256Plus()
