@@ -4,17 +4,46 @@ using System;
 using System.Linq;
 using System.Text;
 
+// Psychotic edge-case tests for the command parser.
+// Many of these are commented out or skipped because they test impossible/unreachable cases
+// (e.g., entering dangerous Unicode via keyboard, whitespace-only input in UX, etc).
+// Keeping them for reference, historical documentation, and so anyone reading this knows
+// these edge cases were considered and intentionally out of scope.
+
 [Trait("TestType", "Psychotic")]
 public class PsychoticCommandParserTests
 {
-    [Fact(Skip = "Terminal input is keyboard-only; users cannot enter Unicode/control chars.")]
-    public void Parse_CommandWithUnicodeAndControlChars() { }
+    // --- SKIPPED/COMMENTED TESTS (impossible to trigger or out of project scope) ---
 
-    [Fact(Skip = "Terminal input is keyboard-only; zero-width/odd whitespace impossible.")]
-    public void Parse_CommandWithZeroWidthSpaceAndWeirdWhitespace() { }
+    // Users cannot enter Unicode/control chars from the keyboard; test not needed.
+    // [Fact(Skip = "Terminal input is keyboard-only; users cannot enter Unicode/control chars.")]
+    // public void Parse_CommandWithUnicodeAndControlChars() { }
 
-    [Fact(Skip = "No support/need for complex quoted argument parsing in UX.")]
-    public void Parse_CommandWithQuotedArgumentsAndEscapes() { }
+    // Terminal input is keyboard-only; zero-width/odd whitespace impossible.
+    // [Fact(Skip = "Terminal input is keyboard-only; zero-width/odd whitespace impossible.")]
+    // public void Parse_CommandWithZeroWidthSpaceAndWeirdWhitespace() { }
+
+    // Complex quoted argument parsing is not needed in UX; command syntax does not support it.
+    // [Fact(Skip = "No support/need for complex quoted argument parsing in UX.")]
+    // public void Parse_CommandWithQuotedArgumentsAndEscapes() { }
+
+    // Dangerous unicode arguments not possible via keyboard input.
+    // [Fact(Skip = "Dangerous unicode arguments not possible via keyboard input.")]
+    // public void Parse_CommandWithArgumentsContainingDangerousUnicode() { }
+
+    // Whitespace-only input cannot occur in UX; test not needed.
+    // [Fact(Skip = "Whitespace-only input cannot occur in UX; test not needed.")]
+    // public void Parse_OnlyWhitespaceOrGarbage() { }
+
+    // Weird mixed separators (e.g., exotic punctuation as argument separators) cannot be entered via terminal UX.
+    // [Fact(Skip = "Weird mixed separators cannot be entered via terminal UX.")]
+    // public void Parse_CommandWithMixedSeparators() { }
+
+    // Broken UTF-8 input is impossible from keyboard or normal system usage.
+    // [Fact(Skip = "Broken UTF-8 input is impossible from keyboard.")]
+    // public void Parse_CommandWithNonAsciiAndBrokenUtf8() { }
+
+    // --- TESTS THAT COVER ACTUAL EDGE/REALISTIC CASES ---
 
     [Fact]
     public void Parse_CommandWithManyArguments_MaxArgs()
@@ -63,12 +92,6 @@ public class PsychoticCommandParserTests
         Assert.Equal(new[] { "-la", "/var/log" }, result.Arguments);
     }
 
-    [Fact(Skip = "Dangerous unicode arguments not possible via keyboard input.")]
-    public void Parse_CommandWithArgumentsContainingDangerousUnicode() { }
-
-    [Fact(Skip = "Whitespace-only input cannot occur in UX; test not needed.")]
-    public void Parse_OnlyWhitespaceOrGarbage() { }
-
     [Fact]
     public void Parse_CommandAtMaxLength()
     {
@@ -82,12 +105,6 @@ public class PsychoticCommandParserTests
         Assert.Equal("ls", result.CommandName);
         Assert.Equal(10000, result.Arguments.Length);
     }
-
-    [Fact(Skip = "Weird mixed separators cannot be entered via terminal UX.")]
-    public void Parse_CommandWithMixedSeparators() { }
-
-    [Fact(Skip = "Broken UTF-8 input is impossible from keyboard.")]
-    public void Parse_CommandWithNonAsciiAndBrokenUtf8() { }
 
     [Fact]
     public void Parse_CommandNameOnly()

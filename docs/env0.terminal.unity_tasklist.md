@@ -34,20 +34,20 @@ Update this list every time a new feature is finished and covered by tests.
           - Includes name collisions, path traversal, invalid names, edge-case validation, and more
 - [x] **Playground console app:**  
       - Live interactive terminal for hands-on navigation and file access
+- [x] **Comprehensive JSON Loader Suite:**
+    - [x] UserConfig, Devices, BootConfig, Filesystem loader logic, POCOs, and integration.
+    - [x] All loaders tested with both standard and "psychotic" edge-case test suites.
+    - [x] Any test cases that are impossible by design (e.g. keyboard can’t enter control chars, loader always returns fallback) are **commented out or skipped in test code, with a clear explanation and rationale**.
+    - [x] All passing tests (including hostile and pathological input) are documented directly in test files for future reference.
+    - [x] Loader is now robust against binary, malformed, over-nested, deeply hostile, or otherwise cursed configs; all cases handled via fallback, error logging, or explicit rejection.
 
 ---
 
 ## 🔜 In Progress / Next Up
 
-- [ ] JSON loading and validation (Devices, UserConfig, Filesystem):
-    - [ ] Loader must enforce all name/structure rules (already reflected in test)
-    - [ ] Graceful fallback to safe-mode FS if JSON is corrupt/missing
 - [ ] LoginHandler: Local and SSH login with user/session state
 - [ ] CommandHandler: Command dispatch and error output
 - [ ] Integration: Connect all systems for real “terminal” flow
-- [ ] Future (horror/experimental branch):  
-      - Recursive/cyclical folder logic
-      - Cursed/haunted directory features
 
 ---
 
