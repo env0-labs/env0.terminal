@@ -4,7 +4,7 @@
       "user": {
         "tutorial.txt": {
           "type": "file",
-          "content": "Welcome to the system!"
+          "content": "Oops you're in the fall back system!"
         }
       }
     },

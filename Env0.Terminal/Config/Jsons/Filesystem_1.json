@@ -1,0 +1,18 @@
+{
+  "root": {
+    "home": {
+      "user": {
+        "tutorial.txt": {
+          "type": "file",
+          "content": "Welcome to the Filesystem_ 1 system!"
+        }
+      }
+    },
+    "etc": {
+      "hostname.txt": {
+        "type": "file",
+        "content": "sbc"
+      }
+    }
+  }
+}
