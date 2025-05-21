@@ -1,10 +1,10 @@
-# env0.terminal.unity — Project Overview
+# emv0.terminal — Project Overview
 
 ---
 
 ## What Is This?
 
-**env0.terminal.unity** is a pure C# logic engine for simulating a fully modular, authentic Linux-style terminal.  
+**emv0.terminal** is a pure C# logic engine for simulating a fully modular, authentic Linux-style terminal.  
 It is designed as a black-box DLL for consumption by any front end (Unity, CLI, etc.), powering narrative, puzzle, or adventure games.
 
 - **No UI or rendering is included.**
@@ -56,7 +56,7 @@ It is designed as a black-box DLL for consumption by any front end (Unity, CLI, 
 
 ## Philosophy
 
-*env0.terminal.unity* is designed for maintainability, strict separation of concerns, and creative extensibility.  
+*emv0.terminal* is designed for maintainability, strict separation of concerns, and creative extensibility.  
 **If you’re unsure whether a feature belongs here, ask:  
 “Is it pure terminal logic, or is it presentation/front-end?”  
 If in doubt—leave it out.**

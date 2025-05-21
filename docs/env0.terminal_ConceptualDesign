@@ -1,4 +1,4 @@
-/env0.terminal.unity
+/emv0.terminal
 ├── /Config
 │   ├── /Jsons
 │   │   ├── BootConfig.json               # JSON configuration for the boot sequence.

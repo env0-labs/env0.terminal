@@ -1,6 +1,6 @@
 # 🧼 RESET.md — Project Baseline (C# Logic Engine, Milestone 1)
 
-This document is the canonical source of truth for the `env0.terminal.unity` C# logic engine as of this reset.  
+This document is the canonical source of truth for the `emv0.terminal` C# logic engine as of this reset.  
 If a rule or decision isn’t documented here, **assume it is out of scope**—do not implement or assume anything not explicit in this file.  
 When in doubt, refer to the full Q&A transcript or request clarification before proceeding.
 
@@ -16,7 +16,7 @@ When in doubt, refer to the full Q&A transcript or request clarification before 
 
 ## 📓 Project Roles & Boundaries
 
-- **env0.terminal.unity** is a *pure C#* logic engine.
+- **emv0.terminal** is a *pure C#* logic engine.
 - All terminal, command, filesystem, and network logic is handled here.
 - No visual/UI, audio, or front-end responsibilities—these are for Unity or any other consumer via DLL.
 - **Milestone 1** goal: *Fully functional, Linux-style virtual terminal with local login, SSH, strict navigation, JSON-driven filesystems, and a clean CLI command system.*
@@ -34,7 +34,7 @@ The following cycle is strictly enforced for all core and feature work:
     - Regularly interrogate and expand hostile test coverage
 5. Modify for user test in Playground (manual verification, if relevant)
 6. Commit once happy (atomic, meaningful commit; no “test/fix/test/fix” in main)
-7. Update the Tasklist (env0.terminal.unity_tasklist.md)
+7. Update the Tasklist (emv0.terminal_tasklist.md)
 
 This discipline is non-negotiable. All contributors and future development must adhere.
 

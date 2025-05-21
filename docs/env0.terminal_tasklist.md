@@ -1,4 +1,4 @@
-# Task List / Project Progress — env0.terminal.unity
+# Task List / Project Progress — emv0.terminal
 
 This file tracks all major system milestones and features as they are completed.
 Update this list every time a new feature is finished and covered by tests.
