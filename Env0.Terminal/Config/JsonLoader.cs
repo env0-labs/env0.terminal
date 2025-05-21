@@ -41,7 +41,7 @@ namespace Env0.Terminal.Config
             // Example: Load filesystems 1-10 and safe mode (filesystem 11)
             for (int i = 1; i <= 10; i++)
             {
-                var fs = LoadFilesystem($"Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_{i}.json", out var fsErrors);
+                var fs = LoadFilesystem($"Env0.Terminal/Config/Jsons/Filesystems/Filesystem_{i}.json", out var fsErrors);
                 Filesystems[$"Filesystem_{i}.json"] = fs;
                 ValidationErrors.AddRange(fsErrors);
             }
