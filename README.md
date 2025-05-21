@@ -1,4 +1,4 @@
-# env0.terminal.unity
+# env0.terminal
 
 A pure C# logic engine for simulating an authentic, modular Linux terminal.  
 **No UI, no rendering, no Unity glue—just robust backend logic.**  
@@ -8,7 +8,7 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 
 ## 🚩 What is this?
 
-**env0.terminal.unity** is the core simulation for narrative, puzzle, or adventure games built on a Linux-style terminal experience.
+**env0.terminal** is the core simulation for narrative, puzzle, or adventure games built on a Linux-style terminal experience.
 
 - Implements authentic terminal navigation, strict file and network access, and a robust, case-insensitive command shell.
 - All world data (filesystems, devices, boot sequence, users) is defined via JSON.
@@ -20,10 +20,10 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 
 - /
     - docs/
-        - env0.terminal.unity_Overview.md
-        - env0.terminal.unity_Q&A.txt
-        - env0.terminal.unity_REFERENCE.md
-        - env0.terminal.unity_tasklist.md
+        - env0.terminal_Overview.md
+        - env0.terminal_Q&A.txt
+        - env0.terminal_REFERENCE.md
+        - env0.terminal_tasklist.md
     - Env0.Terminal/
         - Config/
             - Jsons/
