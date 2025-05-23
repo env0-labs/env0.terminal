@@ -63,4 +63,9 @@ If in doubt—leave it out.**
 
 ---
 
-> **For all technical rules and canonical behaviors, REFERENCE.md is the final word.**
+> For all technical rules and canonical behaviors, Contracts.md is the final word.
+> 
+> For all plain language descriptions of behaviors, REFERENCE.md is the final word.
+> 
+> For all detail on milestones, Milestones.md is the final word.**
+
