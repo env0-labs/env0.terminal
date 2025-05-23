@@ -22,36 +22,80 @@ namespace Env0.Terminal.Config
         // Validation errors (visible in debug)
         public static List<string> ValidationErrors { get; private set; } = new List<string>();
 
+        private static string ResolvePath(params string[] pathOptions)
+        {
+            foreach (var path in pathOptions)
+            {
+                if (System.IO.File.Exists(path))
+                    return path;
+            }
+            // If none found, return the first anyway (to fail with a clear error)
+            return pathOptions.First();
+        }
+
+        
         public static void LoadAll()
         {
             ValidationErrors.Clear();
 
-            // These paths now match both test and playground output structures!
+            // For each file, try the test output path first, then project root
+            // (add/remove more options if needed)
 
-            // Load BootConfig.json
-            BootConfig = LoadBootConfig("Config/Jsons/BootConfig.json", out var bootErrors);
+            // BootConfig
+            BootConfig = LoadBootConfig(
+                ResolvePath(
+                    "Config/Jsons/BootConfig.json",
+                    "Env0.Terminal/Config/Jsons/BootConfig.json"
+                ),
+                out var bootErrors
+            );
             ValidationErrors.AddRange(bootErrors);
 
-            // Load UserConfig.json
-            UserConfig = LoadUserConfig("Config/Jsons/UserConfig.json", out var userErrors);
+            // UserConfig
+            UserConfig = LoadUserConfig(
+                ResolvePath(
+                    "Config/Jsons/UserConfig.json",
+                    "Env0.Terminal/Config/Jsons/UserConfig.json"
+                ),
+                out var userErrors
+            );
             ValidationErrors.AddRange(userErrors);
 
-            // Load Devices.json
-            Devices = LoadDevices("Config/Jsons/Devices.json", out var deviceErrors);
+            // Devices
+            Devices = LoadDevices(
+                ResolvePath(
+                    "Config/Jsons/Devices.json",
+                    "Env0.Terminal/Config/Jsons/Devices.json"
+                ),
+                out var deviceErrors
+            );
             ValidationErrors.AddRange(deviceErrors);
 
-            // Load filesystems 1-10
+            // Filesystems 1-10
             for (int i = 1; i <= 10; i++)
             {
-                var fs = LoadFilesystem($"Config/Jsons/JsonFilesystems/Filesystem_{i}.json", out var fsErrors);
+                var fs = LoadFilesystem(
+                    ResolvePath(
+                        $"Config/Jsons/JsonFilesystems/Filesystem_{i}.json",
+                        $"Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_{i}.json"
+                    ),
+                    out var fsErrors
+                );
                 Filesystems[$"Filesystem_{i}.json"] = fs;
                 ValidationErrors.AddRange(fsErrors);
             }
-            // Safe mode fallback (and typo fix)
-            var safeFs = LoadFilesystem("Config/Jsons/JsonFilesystems/Filesystem_11.json", out var safeErrors);
+            // Filesystem_11.json (safe fallback)
+            var safeFs = LoadFilesystem(
+                ResolvePath(
+                    "Config/Jsons/JsonFilesystems/Filesystem_11.json",
+                    "Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_11.json"
+                ),
+                out var safeErrors
+            );
             Filesystems["Filesystem_11.json"] = safeFs;
             ValidationErrors.AddRange(safeErrors);
         }
+
 
 
         internal static BootConfig LoadBootConfig(string path, out List<string> errors)
