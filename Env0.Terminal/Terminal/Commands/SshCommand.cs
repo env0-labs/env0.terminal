@@ -55,8 +55,18 @@ namespace Env0.Terminal.Terminal.Commands
                 return new CommandResult("Login failed\n\n", isError: true);
 
             // 7. SSH stack overflow
+
             if (session.SshStack.Count >= 10)
-                return new CommandResult("Stack overflow: Too many nested SSH sessions. Connection reset to local SBC.\n\n", isError: true);
+                return new CommandResult("ssh: Too many nested SSH sessions (max 10)\n", isError: true);
+
+            // Push current session context onto stack
+            session.SshStack.Push(new SshSessionContext(
+                session.Username,
+                session.Hostname,
+                session.CurrentWorkingDirectory,
+                session.FilesystemManager,
+                session.NetworkManager
+            ));
 
             // 8. Save current context on stack
             session.SshStack.Push(new SshSessionContext(
