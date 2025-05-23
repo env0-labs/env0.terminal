@@ -20,8 +20,11 @@ namespace Env0.Terminal.Terminal.Commands
             if (!success)
                 return new CommandResult($"bash: cd: {error}\n\n", isError: true);
 
-            // Output is usually empty for `cd`
+            // Update session with the new absolute path!
+            session.CurrentWorkingDirectory = session.FilesystemManager.GetCurrentDirectoryPath();
+
             return new CommandResult(string.Empty);
+
         }
 
     }

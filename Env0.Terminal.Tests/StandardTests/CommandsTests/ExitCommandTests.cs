@@ -6,18 +6,16 @@ namespace Env0.Terminal.Tests.Commands
 {
     public class ExitCommandTests
     {
-        /// <summary>
-        /// ExitCommand returns "Not implemented yet." for now.
-        /// </summary>
         [Fact]
-        public void ExitCommand_Stubbed_ReturnsNotImplemented()
+        public void ExitCommand_AtRoot_ReturnsLogoutNotImplemented()
         {
-            var cmd = new ExitCommand();
-            var session = new SessionState();
-            var result = cmd.Execute(session, new string[0]);
+            var command = new ExitCommand();
+            var session = new SessionState(); // At root by default
 
-            Assert.True(result.IsError);
-            Assert.Contains("Not implemented yet", result.Output);
+            var result = command.Execute(session, new string[0]);
+
+            Assert.NotNull(result);
+            Assert.Contains("logout: not implemented", result.Output.ToLower());
         }
     }
 }

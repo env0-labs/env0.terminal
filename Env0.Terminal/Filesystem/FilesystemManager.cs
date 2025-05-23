@@ -93,6 +93,21 @@ namespace Env0.Terminal.Filesystem
             return true;
         }
 
+        // Helper to build full path by walking up parents to the root
+            
+        public string GetCurrentDirectoryPath()
+        {
+            var stack = new Stack<string>();
+            var dir = currentDirectory;
+            while (dir != null && dir.Parent != null)
+            {
+                stack.Push(dir.Name);
+                dir = dir.Parent;
+            }
+            // If at root, stack will be empty. Represent as "/"
+            return stack.Count == 0 ? "/" : "/" + string.Join("/", stack);
+        }
+        
         public bool GetFileContent(string filename, out string content, out string error)
         {
             content = null;
@@ -124,6 +139,7 @@ namespace Env0.Terminal.Filesystem
                 return false;
             }
 
+            
             // File too large (per spec: max 1000 lines)
             var lines = entry.Content?.Split('\n');
             if (lines != null && lines.Length > 1000)

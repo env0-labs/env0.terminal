@@ -3,6 +3,7 @@ using Env0.Terminal.Filesystem;
 using Env0.Terminal.Network;
 using Env0.Terminal.Config.Pocos;
 using Env0.Terminal.Config;
+using System;
 
 namespace Env0.Terminal.Terminal.Commands
 {
@@ -10,13 +11,15 @@ namespace Env0.Terminal.Terminal.Commands
     {
         public CommandResult Execute(SessionState session, string[] args)
         {
+            // 1. Session/network validation
             if (session == null || session.NetworkManager == null)
-                return new CommandResult("ssh: Network not initialized.\n", isError: true);
+                return new CommandResult("bash: ssh: Network not initialized.\n\n", isError: true);
 
+            // 2. Argument validation (missing host)
             if (args.Length == 0 || string.IsNullOrWhiteSpace(args[0]))
-                return new CommandResult("ssh: Missing target (hostname or IP).\n", isError: true);
+                return new CommandResult("bash: ssh: Missing host\n\n", isError: true);
 
-            // Parse username@host if supplied, else just use host
+            // 3. Parse user@host
             string user = null, host = null;
             var target = args[0].Trim();
             if (target.Contains("@"))
@@ -30,30 +33,32 @@ namespace Env0.Terminal.Terminal.Commands
                 host = target;
             }
 
+            // 4. Device lookup
             var device = session.NetworkManager.FindDevice(host);
             if (device == null)
-                return new CommandResult($"ssh: Could not resolve host: {host}\n", isError: true);
+                return new CommandResult("bash: ssh: No such device\n\n", isError: true);
 
-            // Use device.Username and device.Password from Devices.json
+            // 5. Grab expected username/password from device (contract: only one user per device)
             string expectedUser = device.Username ?? "admin";
             string expectedPass = device.Password ?? "password";
-
             if (user == null) user = expectedUser;
 
-            if (user != expectedUser)
-                return new CommandResult($"ssh: Incorrect username for {host}\n", isError: true);
+            // 6. Contract: All SSH login failures return "Login failed" (never specify why)
+            if (!string.Equals(user, expectedUser, StringComparison.OrdinalIgnoreCase))
+                return new CommandResult("Login failed\n\n", isError: true);
 
-            // Simulate password prompt (stub: always correct for now)
-            string providedPass = expectedPass; // TODO: Replace with real user input
+            // --- Password check is stubbed for now ---
+            // TODO: Replace this with real password prompt/user input when front-end allows
+            string providedPass = expectedPass; // Always succeeds (for test only)
 
             if (providedPass != expectedPass)
-                return new CommandResult($"ssh: Incorrect password for {user}@{host}\n", isError: true);
+                return new CommandResult("Login failed\n\n", isError: true);
 
-            // Check SSH stack depth
+            // 7. SSH stack overflow
             if (session.SshStack.Count >= 10)
-                return new CommandResult("ssh: Too many nested SSH sessions (max 10)\n", isError: true);
+                return new CommandResult("Stack overflow: Too many nested SSH sessions. Connection reset to local SBC.\n\n", isError: true);
 
-            // Push current session context onto stack
+            // 8. Save current context on stack
             session.SshStack.Push(new SshSessionContext(
                 session.Username,
                 session.Hostname,
@@ -62,15 +67,12 @@ namespace Env0.Terminal.Terminal.Commands
                 session.NetworkManager
             ));
 
-            // --- FilesystemManager assignment (using FileEntryToFileSystemEntryConverter) ---
-
+            // 9. Filesystem loading
             var fsFilename = device.Filesystem;
             if (!JsonLoader.Filesystems.TryGetValue(fsFilename, out var filesystem) || filesystem?.Root == null)
-            {
-                return new CommandResult($"ssh: Could not load filesystem '{fsFilename}' for device.\n", isError: true);
-            }
+                return new CommandResult($"bash: ssh: Could not load filesystem '{fsFilename}' for device.\n\n", isError: true);
 
-            // Create root FileSystemEntry ("/") and convert all children using the new converter
+            // 10. Build new root FS
             var rootEntry = new FileSystemEntry
             {
                 Name = "/",
@@ -91,8 +93,16 @@ namespace Env0.Terminal.Terminal.Commands
             session.DeviceInfo = device;
             session.CurrentWorkingDirectory = "/"; // Reset to root for new session
 
-            string banner = device.Motd ?? $"Connected to {device.Hostname}\n";
-            return new CommandResult($"SSH connection established to {host}.\n{banner}", isError: false, stateChanged: true, updatedSession: session);
+            // 11. Banner/MOTD (contract: always shown)
+            string banner = !string.IsNullOrWhiteSpace(device.Motd)
+                ? device.Motd
+                : $"Welcome to {device.Hostname}";
+            return new CommandResult(
+                $"SSH connection established to {host}.\n{banner}\n",
+                isError: false,
+                stateChanged: true,
+                updatedSession: session
+            );
         }
     }
 }

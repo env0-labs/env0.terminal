@@ -1,23 +1,32 @@
 using Xunit;
 using Env0.Terminal.Terminal;
 using Env0.Terminal.Terminal.Commands;
+using Env0.Terminal.Config.Pocos;
+using System.Collections.Generic;
 
 namespace Env0.Terminal.Tests.Commands
 {
     public class IfconfigCommandTests
     {
-        /// <summary>
-        /// IfconfigCommand returns "Not implemented yet." for now.
-        /// </summary>
         [Fact]
-        public void IfconfigCommand_Stubbed_ReturnsNotImplemented()
+        public void IfconfigCommand_ListsInterfaces()
         {
-            var cmd = new IfconfigCommand();
-            var session = new SessionState();
-            var result = cmd.Execute(session, new string[0]);
+            var command = new IfconfigCommand();
+            var session = new SessionState
+            {
+                DeviceInfo = new DeviceInfo
+                {
+                    Interfaces = new List<DeviceInterface>
+                    {
+                        new DeviceInterface { Name = "eth0", Ip = "10.10.10.99", Subnet = "255.255.255.0", Mac = "aa:bb:cc:dd:ee:ff" }
+                    }
+                }
+            };
 
-            Assert.True(result.IsError);
-            Assert.Contains("Not implemented yet", result.Output);
+            var result = command.Execute(session, new string[0]);
+
+            Assert.NotNull(result);
+            Assert.Contains("eth0", result.Output);
         }
     }
 }

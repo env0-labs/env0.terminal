@@ -6,18 +6,16 @@ namespace Env0.Terminal.Tests.Commands
 {
     public class HelpCommandTests
     {
-        /// <summary>
-        /// HelpCommand returns "Not implemented yet." for now.
-        /// </summary>
         [Fact]
-        public void HelpCommand_Stubbed_ReturnsNotImplemented()
+        public void HelpCommand_ReturnsComprehensiveHelp()
         {
-            var cmd = new HelpCommand();
+            var command = new HelpCommand();
             var session = new SessionState();
-            var result = cmd.Execute(session, new string[0]);
 
-            Assert.True(result.IsError);
-            Assert.Contains("Not implemented yet", result.Output);
+            var result = command.Execute(session, new string[0]);
+
+            Assert.NotNull(result);
+            Assert.Contains("available commands", result.Output.ToLower());
         }
     }
 }

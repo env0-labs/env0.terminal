@@ -26,30 +26,33 @@ namespace Env0.Terminal.Config
         {
             ValidationErrors.Clear();
 
+            // These paths now match both test and playground output structures!
+
             // Load BootConfig.json
-            BootConfig = LoadBootConfig("Env0.Terminal/Config/Jsons/BootConfig.json", out var bootErrors);
+            BootConfig = LoadBootConfig("Config/Jsons/BootConfig.json", out var bootErrors);
             ValidationErrors.AddRange(bootErrors);
 
             // Load UserConfig.json
-            UserConfig = LoadUserConfig("Env0.Terminal/Config/Jsons/UserConfig.json", out var userErrors);
+            UserConfig = LoadUserConfig("Config/Jsons/UserConfig.json", out var userErrors);
             ValidationErrors.AddRange(userErrors);
 
             // Load Devices.json
-            Devices = LoadDevices("Env0.Terminal/Config/Jsons/Devices.json", out var deviceErrors);
+            Devices = LoadDevices("Config/Jsons/Devices.json", out var deviceErrors);
             ValidationErrors.AddRange(deviceErrors);
 
-            // Example: Load filesystems 1-10 and safe mode (filesystem 11)
+            // Load filesystems 1-10
             for (int i = 1; i <= 10; i++)
             {
-                var fs = LoadFilesystem($"Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_{i}.json", out var fsErrors);
+                var fs = LoadFilesystem($"Config/Jsons/JsonFilesystems/Filesystem_{i}.json", out var fsErrors);
                 Filesystems[$"Filesystem_{i}.json"] = fs;
                 ValidationErrors.AddRange(fsErrors);
             }
-            // Safe mode fallback
-            var safeFs = LoadFilesystem("Env0.Terminal/Config/Jsons/JsonFilesystem_11.json", out var safeErrors);
+            // Safe mode fallback (and typo fix)
+            var safeFs = LoadFilesystem("Config/Jsons/JsonFilesystems/Filesystem_11.json", out var safeErrors);
             Filesystems["Filesystem_11.json"] = safeFs;
             ValidationErrors.AddRange(safeErrors);
         }
+
 
         internal static BootConfig LoadBootConfig(string path, out List<string> errors)
         {

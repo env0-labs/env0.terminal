@@ -1,23 +1,34 @@
 using Xunit;
 using Env0.Terminal.Terminal;
 using Env0.Terminal.Terminal.Commands;
+using Env0.Terminal.Network;
+using Env0.Terminal.Config.Pocos;
+using System.Collections.Generic;
 
 namespace Env0.Terminal.Tests.Commands
 {
     public class NmapCommandTests
     {
-        /// <summary>
-        /// NmapCommand returns "Not implemented yet." for now.
-        /// </summary>
         [Fact]
-        public void NmapCommand_Stubbed_ReturnsNotImplemented()
+        public void NmapCommand_ListsDevicesOnSubnet()
         {
-            var cmd = new NmapCommand();
-            var session = new SessionState();
-            var result = cmd.Execute(session, new string[0]);
+            var devices = new List<DeviceInfo>
+            {
+                new DeviceInfo { Ip = "10.10.10.1", Hostname = "workstation", Subnet = "255.255.255.0" }
+            };
+            var deviceInfo = devices[0];
+            var session = new SessionState
+            {
+                NetworkManager = new NetworkManager(devices, deviceInfo),
+                DeviceInfo = deviceInfo // <<<< KEY FIX
+            };
 
-            Assert.True(result.IsError);
-            Assert.Contains("Not implemented yet", result.Output);
+            var command = new NmapCommand();
+            var result = command.Execute(session, new string[0]);
+
+            Assert.NotNull(result);
+            Assert.Contains("workstation", result.Output);
         }
+
     }
 }

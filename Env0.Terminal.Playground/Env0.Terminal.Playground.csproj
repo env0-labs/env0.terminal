@@ -3,6 +3,16 @@
   <ItemGroup>
     <ProjectReference Include="..\Env0.Terminal\Env0.Terminal.csproj" />
   </ItemGroup>
+  <!-- WARNING: Do not touch this copy block unless you like pain. MSBuild only works with recursive Include + Link for test data folders. -->
+  <ItemGroup>
+    <None Include="..\Env0.Terminal\Config\Jsons\JsonFilesystems\**\*">
+      <Link>Config\Jsons\JsonFilesystems\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="..\Env0.Terminal\Config\Jsons\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
