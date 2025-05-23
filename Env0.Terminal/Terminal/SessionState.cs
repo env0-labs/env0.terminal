@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Env0.Terminal.Filesystem;
 using Env0.Terminal.Network;
+using Env0.Terminal.Config.Pocos;
 
 namespace Env0.Terminal.Terminal
 {
@@ -21,6 +22,7 @@ namespace Env0.Terminal.Terminal
         // Managers
         public FilesystemManager FilesystemManager { get; set; }
         public NetworkManager NetworkManager { get; set; }
+        public DeviceInfo DeviceInfo { get; set; }
 
         // Command history (max 20, no consecutive duplicates)
         public List<string> CommandHistory { get; set; } = new List<string>();

@@ -85,6 +85,22 @@ namespace Env0.Terminal.Network
             return results;
         }
 
+        // Lookup device by IP or hostname (for ping, ssh, etc.)
+        public DeviceInfo FindDevice(string ipOrHostname)
+        {
+            if (string.IsNullOrWhiteSpace(ipOrHostname))
+                return null;
+
+            // Try IP first
+            var device = GetDeviceByIp(ipOrHostname);
+            if (device != null)
+                return device;
+
+            // If not found by IP, try hostname
+            return GetDeviceByHostname(ipOrHostname);
+        }
+
+        
         // --- Models for nmap/ping output (can be moved elsewhere) ---
         public class NmapResult
         {

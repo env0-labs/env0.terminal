@@ -4,7 +4,17 @@
       "user": {
         "tutorial.txt": {
           "type": "file",
-          "content": "Welcome to the Filesystem_ 1 system!"
+          "content": "Welcome to the Filesystem_1 system!"
+        },
+        "notes.txt": {
+          "type": "file",
+          "content": "Remember: SSH into other devices to find secrets."
+        }
+      },
+      "guest": {
+        "readme.txt": {
+          "type": "file",
+          "content": "Guest access is limited."
         }
       }
     },
@@ -12,6 +22,16 @@
       "hostname.txt": {
         "type": "file",
         "content": "sbc"
+      },
+      "motd.txt": {
+        "type": "file",
+        "content": "Authorized access only."
+      }
+    },
+    "bin": {
+      "run.sh": {
+        "type": "file",
+        "content": "#!/bin/sh\necho Running!"
       }
     }
   }
