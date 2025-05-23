@@ -1,37 +1,27 @@
 {
   "root": {
+    "filesystem_1.txt": {
+      "type": "file",
+      "content": "Player SBC — Standard Home System\nWelcome to the main SBC terminal. Use this for the tutorial and basic navigation."
+    },
     "home": {
       "user": {
         "tutorial.txt": {
           "type": "file",
-          "content": "Welcome to the Filesystem_1 system!"
-        },
-        "notes.txt": {
-          "type": "file",
-          "content": "Remember: SSH into other devices to find secrets."
-        }
-      },
-      "guest": {
-        "readme.txt": {
-          "type": "file",
-          "content": "Guest access is limited."
+          "content": "Welcome!\nThis is your SBC terminal. Try commands like ls, cd, cat, read tutorial.txt, and help."
         }
       }
     },
     "etc": {
       "hostname.txt": {
         "type": "file",
-        "content": "sbc"
-      },
-      "motd.txt": {
-        "type": "file",
-        "content": "Authorized access only."
+        "content": "sbc.node.zero"
       }
     },
-    "bin": {
-      "run.sh": {
+    "log": {
+      "boot.log": {
         "type": "file",
-        "content": "#!/bin/sh\necho Running!"
+        "content": "Boot successful at 2025-05-23T09:12:00Z"
       }
     }
   }

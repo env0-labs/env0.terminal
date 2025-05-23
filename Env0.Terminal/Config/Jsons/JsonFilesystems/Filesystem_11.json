@@ -1,18 +1,12 @@
 {
   "root": {
-    "home": {
-      "user": {
-        "tutorial.txt": {
-          "type": "file",
-          "content": "Oops you're in the fall back system!"
-        }
-      }
+    "filesystem_11.txt": {
+      "type": "file",
+      "content": "Failsafe Filesystem — You broke in, but there’s nothing here."
     },
-    "etc": {
-      "hostname.txt": {
-        "type": "file",
-        "content": "sbc"
-      }
+    "congrats.txt": {
+      "type": "file",
+      "content": "You broke in! But there’s nothing here."
     }
   }
 }
