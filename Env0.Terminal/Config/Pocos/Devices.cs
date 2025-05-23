@@ -8,9 +8,10 @@ namespace Env0.Terminal.Config.Pocos
         public string Mac { get; set; } = "";
     }
 
-    public class Device
+    public class DeviceInfo
     {
         public string Ip { get; set; } = "";
+        public string Subnet { get; set; } = "";
         public string Hostname { get; set; } = "";
         public string Mac { get; set; } = "";
         public string Username { get; set; } = "";

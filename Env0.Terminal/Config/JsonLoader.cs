@@ -14,7 +14,7 @@ namespace Env0.Terminal.Config
         public static UserConfig UserConfig { get; private set; }
 
         // Devices
-        public static List<Device> Devices { get; private set; } = new();
+        public static List<DeviceInfo> Devices { get; private set; } = new();
 
         // Filesystems (keyed by filename, e.g., "Filesystem_1.json")
         public static Dictionary<string, Env0.Terminal.Config.Pocos.Filesystem> Filesystems { get; private set; } = new();
@@ -112,25 +112,25 @@ namespace Env0.Terminal.Config
             }
         }
 
-        internal static List<Device> LoadDevices(string path, out List<string> errors)
+        internal static List<DeviceInfo> LoadDevices(string path, out List<string> errors)
         {
             errors = new List<string>();
 
             if (!File.Exists(path))
             {
                 errors.Add($"Devices missing: {path}");
-                return new List<Device>();
+                return new List<DeviceInfo>();
             }
 
             try
             {
                 var json = File.ReadAllText(path);
-                var devices = JsonConvert.DeserializeObject<List<Device>>(json);
+                var devices = JsonConvert.DeserializeObject<List<DeviceInfo>>(json);
 
                 if (devices == null || devices.Count == 0)
                 {
                     errors.Add("Devices.json is empty or invalid.");
-                    return new List<Device>();
+                    return new List<DeviceInfo>();
                 }
 
                 for (int i = 0; i < devices.Count; i++)
@@ -166,7 +166,7 @@ namespace Env0.Terminal.Config
             catch (Exception ex)
             {
                 errors.Add($"Devices failed to load: {ex.Message}");
-                return new List<Device>();
+                return new List<DeviceInfo>();
             }
         }
 

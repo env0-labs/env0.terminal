@@ -1,28 +1,105 @@
-// NetworkManager.cs
-// Role: Contains all network-related logic (device lookup, nmap, SSH)
-// Dependencies: DeviceInfo, Devices.json, FilesystemManager
-/* 
-public class NetworkManager
+using Env0.Terminal.Config.Pocos;
+
+namespace Env0.Terminal.Network
 {
-    // TODO: Implement device lookup by IP/hostname
-    public DeviceInfo FindDevice(string ipOrHostname)
+    // Handles device lookups, nmap, ping, and interface listings for current device/network.
+    public class NetworkManager
     {
-        // Placeholder method
-        return null;
-    }
+        private readonly List<DeviceInfo> _devices;
 
-    // TODO: Implement nmap scan (list devices on subnet)
-    public List<DeviceInfo> NmapScan(string subnet)
-    {
-        // Placeholder method
-        return new List<DeviceInfo>();
-    }
+        // Optionally: Track current device context (for SSH hopping, etc.)
+        public DeviceInfo CurrentDevice { get; set; }
 
-    // TODO: Implement SSH validation (check port, credentials)
-    public bool ValidateSSH(DeviceInfo device, string username, string password)
-    {
-        // Placeholder method
-        return false;
+        public NetworkManager(List<DeviceInfo> devices, DeviceInfo initialDevice)
+        {
+            _devices = devices ?? throw new ArgumentNullException(nameof(devices));
+            CurrentDevice = initialDevice ?? throw new ArgumentNullException(nameof(initialDevice));
+        }
+
+        // Lookup device by IP
+        public DeviceInfo GetDeviceByIp(string ip)
+        {
+            return _devices.FirstOrDefault(d => string.Equals(d.Ip, ip, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Lookup device by hostname
+        public DeviceInfo GetDeviceByHostname(string hostname)
+        {
+            return _devices.FirstOrDefault(d => string.Equals(d.Hostname, hostname, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Return all devices on the current subnet (simulate nmap)
+        public List<DeviceInfo> GetDevicesOnSubnet(string subnet)
+        {
+            // Basic: Assume devices have a Subnet property; adjust as needed.
+            return _devices.Where(d => string.Equals(d.Subnet, subnet, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        // nmap: Show all devices visible from the current device's network context
+        public List<NmapResult> Nmap()
+        {
+            // Assume CurrentDevice has Subnet info
+            string subnet = CurrentDevice?.Subnet ?? "default";
+            var foundDevices = GetDevicesOnSubnet(subnet);
+
+            var results = new List<NmapResult>();
+            foreach (var device in foundDevices)
+            {
+                results.Add(new NmapResult
+                {
+                    Ip = device.Ip,
+                    Hostname = device.Hostname,
+                    Description = string.IsNullOrEmpty(device.Description) ? "No description available." : device.Description,
+                    Ports = device.Ports ?? new List<string>()
+                });
+            }
+            return results;
+        }
+
+        // ifconfig: List all interfaces for the current device
+        public List<DeviceInterface> ListInterfaces()
+        {
+            return CurrentDevice?.Interfaces ?? new List<DeviceInterface>();
+        }
+
+        // ping: Simulate ping with randomized TTL, delay, and possible packet loss
+        public List<PingResult> Ping(DeviceInfo targetDevice, int packetCount = 4)
+        {
+            var results = new List<PingResult>();
+            var rand = new Random();
+
+            for (int i = 1; i <= packetCount; i++)
+            {
+                bool dropped = rand.NextDouble() < 0.15; // 15% packet loss
+                int ttl = rand.Next(50, 70);             // Random TTL for realism
+                double ms = Math.Round(rand.NextDouble() * 100, 1); // up to 100ms
+
+                results.Add(new PingResult
+                {
+                    Sequence = i,
+                    Dropped = dropped,
+                    Ttl = ttl,
+                    TimeMs = ms
+                });
+            }
+            return results;
+        }
+
+        // --- Models for nmap/ping output (can be moved elsewhere) ---
+        public class NmapResult
+        {
+            public string Ip { get; set; }
+            public string Hostname { get; set; }
+            public string Description { get; set; }
+            public List<string> Ports { get; set; }
+        }
+
+        public class PingResult
+        {
+            public int Sequence { get; set; }
+            public bool Dropped { get; set; }
+            public int Ttl { get; set; }
+            public double TimeMs { get; set; }
+        }
     }
 }
- */
