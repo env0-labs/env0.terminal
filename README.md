@@ -13,6 +13,7 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 - Implements strict Linux-style terminal navigation, file access, and SSH-based network traversal.
 - All world data (filesystems, devices, boot sequences, users) is defined via JSON and fully session-driven.
 - Built to be consumed as a DLL—Unity is one possible host, but the logic is fully standalone.
+- **Note:** As of Milestone 1, all narrative and AAI (Artificial Artificial Intelligence) features are developed in a separate project. This repository contains only the terminal core logic.
 
 ---
 
@@ -21,8 +22,10 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 - All converters are unified under a single canonical FileEntry model.
 - The filesystem tree is fully parent-linked and supports nested navigation with proper error recovery.
 - SSH and command execution are stable across recursive and multi-hop sessions.
-- Full test coverage exists across standard, hostile, and psychotic cases.
-- Debug output exists throughout but is now cleanly commented and tagged for future toggling.
+- Full test coverage exists across standard, hostile, and psychotic cases. Out-of-scope or fragile tests are preserved in the codebase as comments with explanations.
+- Debug output exists throughout but is now cleanly commented and tagged for future toggling. Debug mode is stubbed and will be implemented in a later milestone.
+- Narrative/AI features (AAI) are now split out of this codebase.
+- **TerminalEngineAPI** (unified logic interface) is the next planned milestone.
 
 This is a known-good checkpoint.
 
@@ -127,7 +130,6 @@ This is a known-good checkpoint.
   - env0.terminal.unity.code-workspace
   - README.md
 
-
 ---
 
 ## 📚 Core Principles
@@ -138,8 +140,15 @@ This is a known-good checkpoint.
 - **Read-only.** No file creation/editing in Milestone 1—filesystem is static per session.
 - **Strict errors.** All command errors follow Linux conventions: no hand-holding, no suggestions.
 - **Session-only state.** No persistence or mutation outside the runtime session.
-- **Debug mode is dev-only.** Controlled by future flags—not exposed to players.
+- **Debug mode is dev-only.** Controlled by future flags—not exposed to players; all debug output is currently commented and tagged for later integration.
 - **REFERENCE.md is law.** It governs system behavior and test expectations. If you’re unsure, read [REFERENCE.md](./docs/env0.terminal.unity_REFERENCE.md).
+
+---
+
+## 🖥️ Rendering & UI Separation
+
+- **All rendering, screen clearing, cursor, and visual effects are handled entirely by the consuming application** (CLI, Unity, etc.).  
+  This engine provides only logic, state, and output—never visual formatting or presentation.
 
 ---
 
