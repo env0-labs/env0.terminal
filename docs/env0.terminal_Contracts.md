@@ -71,7 +71,7 @@
 | Terminal/DebugManager.cs                       | Controls debug mode toggle, debug command enablement, and debug output sections; collects/logs debug info/errors from all managers | (none) | CommandHandler, TerminalStateManager, all managers needing debug flag or output   |   🚧 (Not implemented)|
 | Terminal/SessionState.cs                       | Stores all session data: username, password, device, cwd, history, SSH stack, debug flag, etc. | (none) | TerminalStateManager, CommandHandler, ICommand, SSHHandler, Playground |      ✅       |
 | Terminal/CommandResult.cs                      | Standardized result object for commands (output string, error, session changes, etc.) | (none) | ICommand, CommandHandler, TerminalStateManager, Playground        |      ✅       |
-| Terminal/TerminalEngineAPI.cs                  | Public interface exposing the logic engine to front-end/Playground | (none) | Unity front-end, Playground/CLI, tests                             |   🚧 (Not implemented)|
+| Terminal/TerminalEngineAPI.cs                  | Canonical public API surface for all terminal session logic, including session initialization, command execution, render state, and debug mode. Exposes phases (Booting, Login, Terminal), prompt, output, session stack, and all special flags for front-end/UI control. | See API contract below | Unity front-end, Playground/CLI, tests                             |   🚧 (Contract finalized, implementation next)|
 
 ---
 
@@ -261,6 +261,114 @@ Defines the public interface for the env0.terminal logic engine, for front-end (
 - Exposes all core functionality as public methods/events (e.g., `SendInput(string command)`, `GetPrompt()`, `GetOutput()`, `GetSessionState()`, etc.).
 - Provides a stable entry point for initialization, session reset, and integration.
 - Hides internal implementation details and private state from the front-end.
+
+
+## TerminalEngineAPI – Public Contract
+
+This contract defines the public API surface for `TerminalEngineAPI.cs`, the single entry point for all external interaction with the terminal simulation engine.  
+All front-end (Unity, CLI, test harnesses, etc.) must use this API for all terminal operations.
+
+---
+
+### **Phases**
+
+```csharp
+public enum TerminalPhase
+{
+    Booting,
+    Login,
+    Terminal
+}
+```
+
+---
+
+### **Render State**
+
+```csharp
+public class TerminalRenderState
+{
+    public TerminalPhase Phase { get; set; }
+
+    // Boot phase
+    public List<string> BootSequenceLines { get; set; }
+
+    // Login phase
+    public bool IsLoginPrompt { get; set; }
+    public bool IsPasswordPrompt { get; set; }
+    public string LoginErrorMessage { get; set; }
+
+    // Terminal phase
+    public string Prompt { get; set; }                 // e.g., user@host:/cwd$
+    public string Output { get; set; }                 // Last command result
+    public string CurrentDirectory { get; set; }
+    public List<string> DirectoryListing { get; set; } // Result of 'ls' or for UI
+    public int SessionStackDepth { get; set; }
+    public List<SessionContext> SessionStackView { get; set; }
+    public bool ClearScreen { get; set; }
+    public bool IsError { get; set; }
+    public string ErrorMessage { get; set; }
+
+    // MOTD / narrative banners
+    public bool ShowMOTD { get; set; }
+    public string MOTD { get; set; }
+
+    // Debug/dev mode
+    public bool DebugMode { get; set; }
+    public DebugInfo DebugInfo { get; set; } // Only set if DebugMode=true
+
+    // Any additional narrative/special state flags as needed
+}
+```
+
+---
+
+### **Session Context**
+
+```csharp
+public class SessionContext
+{
+    public string Username { get; set; }
+    public string Hostname { get; set; }
+    public string Prompt { get; set; }
+}
+```
+
+---
+
+### **Public API Methods**
+
+```csharp
+public class TerminalEngineAPI
+{
+    // Initialize all configs as raw JSON strings
+    public void Initialize(string bootConfigJson, string userConfigJson, string deviceConfigJson, string filesystemJson);
+
+    // Accept a user input line (command), returns updated render state
+    public TerminalRenderState Execute(string input);
+
+    // Reset the session to start state
+    public void Reset();
+
+    // Toggle debug mode (optional, for dev/testing)
+    public void SetDebugMode(bool enabled);
+}
+```
+
+---
+
+### **Usage Notes**
+
+- All output and state needed for UI is exposed via `TerminalRenderState`.
+- No UI, rendering, or input validation logic is performed here—**logic only**.
+- Special states (boot, login, SSH stack, banners, errors, etc.) are always signaled with flags; front-end never infers state by parsing output.
+- Debug info is only returned if debug mode is enabled.
+- No direct access to filesystem, session internals, or AAI/narrative systems.
+
+---
+
+**This contract is canonical. Any future fields/methods should be added only as narrative/UI/gameplay needs dictate.**
+
 
 **NOT Responsible For:**
 - Implementing core logic (delegates to underlying managers/handlers).

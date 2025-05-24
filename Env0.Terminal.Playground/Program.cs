@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Linq;
-using Env0.Terminal.Config;
-using Env0.Terminal.Config.Pocos;
-using Env0.Terminal.Filesystem;
-using Env0.Terminal.Login;
-using Env0.Terminal.Network;
-using Env0.Terminal.Terminal;
-using Env0.Terminal.Terminal.Commands;
+using Env0.Terminal;
+using Env0.Terminal.API_DTOs;
 
 namespace Env0.Terminal.Playground
 {
@@ -14,139 +8,105 @@ namespace Env0.Terminal.Playground
     {
         static void Main(string[] args)
         {
-            // Load all configs (devices, filesystems, etc.)
-            JsonLoader.LoadAll();
+            var api = new TerminalEngineAPI();
+            api.Initialize();
 
-            // Setup managers (find initial device)
-            var initialDevice = JsonLoader.Devices.FirstOrDefault(d => d.Hostname == "workstation.node.zero");
-            if (initialDevice == null)
-            {
-                Console.WriteLine("Error: Initial device 'workstation.node.zero' not found in Devices.json!");
-                return;
-            }
-            var networkManager = new NetworkManager(JsonLoader.Devices, initialDevice);
+            Console.WriteLine("env0.terminal playground (type 'exit' to quit)");
+            Console.WriteLine("----------------------------------------------");
 
-            // Prepare FS root (wrap POCO root as directory, then convert to runtime type)
-            var fsPoco = JsonLoader.Filesystems["Filesystem_1.json"];
-            var pseudoRoot = new FileEntry
-            {
-                Type = "",
-                Content = null,
-                Children = fsPoco.Root
-            };
-            var rootEntry = FileEntryToFileSystemEntryConverter.Convert("", pseudoRoot, null);
-            var fsManager = new FilesystemManager(rootEntry);
-
-
-            // Initialize session state
-            var session = new SessionState
-            {
-                Username = "alice",
-                Hostname = "workstation.node.zero",
-                DeviceInfo = initialDevice,
-                FilesystemManager = fsManager,
-                NetworkManager = networkManager
-            };
-
-            // TODO initial FS debug output - leaving in and commented for possible debug flag
-            /*
-            Console.WriteLine($"Filesystem root initialized with {rootEntry.Children.Count} children:");
-            foreach (var kv in rootEntry.Children)
-                Console.WriteLine($"  - {kv.Key} (dir? {kv.Value.Type == ""})");
-
-            Console.WriteLine($"Welcome to env0.terminal. Starting at {session.Hostname}. Type 'help' for commands.");
-            */
-
-            var sshHandler = new SSHHandler(networkManager);
-            var commandHandler = new CommandHandler(false);
+            TerminalRenderState state = api.Execute(""); // Should trigger boot phase
 
             while (true)
             {
-                Console.Write($"{session.Username}@{session.Hostname}:{session.CurrentWorkingDirectory}$ ");
-                var input = Console.ReadLine();
-
-                if (string.IsNullOrWhiteSpace(input))
-                    continue;
-
-                var tokens = input.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-                var command = tokens[0].ToLower();
-                var arguments = tokens.Length > 1 ? tokens[1] : "";
-
-                if (command == "exit")
+                switch (state.Phase)
                 {
-                    var (success, output) = sshHandler.ExitSsh(session);
-                    Console.WriteLine(output);
-                    continue;
+                    case TerminalPhase.Booting:
+                        // Print boot lines and advance phase
+                        if (state.BootSequenceLines != null)
+                        {
+                            foreach (var line in state.BootSequenceLines)
+                                Console.WriteLine(line);
+                        }
+                        // Move to login phase (call Execute again with no input)
+                        state = api.Execute("");
+                        continue;
+
+                    case TerminalPhase.Login:
+                        if (state.IsLoginPrompt)
+                        {
+                            Console.Write(state.Prompt ?? "Username: ");
+                            var username = Console.ReadLine();
+                            if (username == null) continue;
+                            state = api.Execute(username);
+                            continue;
+                        }
+                        else if (state.IsPasswordPrompt)
+                        {
+                            Console.Write(state.Prompt ?? "Password: ");
+                            var password = ReadPassword(); // Now masks password entry
+                            if (password == null) continue;
+                            state = api.Execute(password);
+                            continue;
+                        }
+                        break;
+
+                    case TerminalPhase.Terminal:
+                    default:
+                        // ---- FIX: Show any output that was returned when entering terminal phase (e.g. login flavor)
+                        if (!string.IsNullOrWhiteSpace(state.Output))
+                            Console.WriteLine(state.Output);
+
+                        Console.Write(state.Prompt);
+                        var input = Console.ReadLine();
+                        if (input == null) continue;
+                        if (input.Trim().ToLower() == "exit") break;
+
+                        state = api.Execute(input);
+
+                        if (!string.IsNullOrWhiteSpace(state.Output))
+                            Console.WriteLine(state.Output);
+
+                        if (state.IsError && !string.IsNullOrWhiteSpace(state.ErrorMessage))
+                            Console.WriteLine($"[ERROR] {state.ErrorMessage}");
+
+                        if (state.ShowMOTD && !string.IsNullOrWhiteSpace(state.MOTD))
+                            Console.WriteLine($"[MOTD] {state.MOTD}");
+
+                        continue;
                 }
-
-                if (command == "ssh")
-                {
-                    string userPart = null, hostPart = null;
-
-                    // Parse ssh [user@]host
-                    var sshArg = arguments.Trim();
-                    if (sshArg.Contains("@"))
-                    {
-                        var parts = sshArg.Split('@');
-                        userPart = parts[0].Trim();
-                        hostPart = parts[1].Trim();
-                    }
-                    else
-                    {
-                        hostPart = sshArg;
-                    }
-
-                    var (success, output) = sshHandler.StartSshSession(
-                        session,
-                        hostPart,
-                        userPart,
-                        PromptUser // delegate for username/password input
-                    );
-                    Console.WriteLine(output);
-                    continue;
-                }
-
-                if (command == "help")
-                {
-                    Console.WriteLine("Commands: ssh, exit, help, and all standard terminal commands (ls, cd, cat, nmap, etc.)");
-                    continue;
-                }
-
-                // All other commands handled by your real handler!
-                var result = commandHandler.Execute(input, session);
-                if (!string.IsNullOrWhiteSpace(result.Output))
-                    Console.WriteLine(result.Output);
+                break; // End loop if terminal phase exits
             }
+
+            Console.WriteLine("Session ended. Bye!");
         }
 
-        // Input prompt: username or password
-        public static string PromptUser(string prompt)
+        /// <summary>
+        /// Reads a password from the console without echoing input.
+        /// </summary>
+        static string ReadPassword()
         {
-            Console.Write(prompt);
-            if (prompt.ToLower().Contains("password"))
-                return ReadPassword();
-            return Console.ReadLine();
-        }
-
-        public static string ReadPassword()
-        {
-            var pwd = string.Empty;
+            var password = string.Empty;
             ConsoleKeyInfo key;
-            do
+
+            while (true)
             {
-                key = Console.ReadKey(intercept: true);
+                key = Console.ReadKey(true);
+
                 if (key.Key == ConsoleKey.Enter)
                     break;
                 if (key.Key == ConsoleKey.Backspace)
                 {
-                    if (pwd.Length > 0)
-                        pwd = pwd.Substring(0, pwd.Length - 1);
+                    if (password.Length > 0)
+                        password = password.Substring(0, password.Length - 1);
                     continue;
                 }
-                pwd += key.KeyChar;
-            } while (true);
+                // Ignore modifier/non-printable keys
+                if (char.IsControl(key.KeyChar))
+                    continue;
+                password += key.KeyChar;
+            }
             Console.WriteLine();
-            return pwd;
+            return password;
         }
     }
 }
