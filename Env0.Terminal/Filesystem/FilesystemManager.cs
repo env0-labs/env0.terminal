@@ -1,45 +1,26 @@
 using System;
 using System.Collections.Generic;
+using Env0.Terminal.Config.Pocos;
 
 namespace Env0.Terminal.Filesystem
 {
-    public class FileSystemEntry
-    {
-        public string Name { get; set; } = "";
-        public bool IsDirectory { get; set; }
-        public Dictionary<string, FileSystemEntry> Children { get; set; } = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase);
-        public string Content { get; set; } = "";
-        public string Type { get; set; } = "";
-        public FileSystemEntry Parent { get; set; } // Null for root
-        public static void ValidateFSName(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name cannot be empty or whitespace.");
-            if (name == "." || name == "..")
-                throw new ArgumentException("Dot and dot-dot are reserved names.");
-            if (name.Contains("/") || name.Contains("\\"))
-                throw new ArgumentException("Names cannot contain slashes.");
-            // Add any other rules here, e.g., length > 256, Unicode, etc.
-        }
-    }
-
     public class FilesystemManager
     {
-        private FileSystemEntry root;
-        private FileSystemEntry currentDirectory;
+        private FileEntry root;
+        private FileEntry currentDirectory;
 
-        public FilesystemManager(FileSystemEntry loadedRoot)
+        public FileEntry CurrentDirectory => currentDirectory;
+
+        public FilesystemManager(FileEntry loadedRoot)
         {
             root = loadedRoot;
             currentDirectory = root;
         }
 
-        // Example method: List current directory
         public List<string> ListCurrentDirectory()
         {
             if (!currentDirectory.IsDirectory)
                 throw new InvalidOperationException("Current entry is not a directory.");
-
             return new List<string>(currentDirectory.Children.Keys);
         }
 
@@ -48,29 +29,59 @@ namespace Env0.Terminal.Filesystem
             return currentDirectory.Name;
         }
 
-        public bool ChangeDirectory(string path, out string error)
+        
+        public bool GetFileContent(string path, out string content, out string error)
         {
+            content = null;
             error = null;
-            if (string.IsNullOrWhiteSpace(path))
+
+            if (!TryGetEntry(path, out var entry, out error))
             {
-                error = "No path specified.";
+                error = error ?? "No such file or directory";
                 return false;
             }
 
-            var target = path.Trim();
-            string[] parts;
-            FileSystemEntry dir;
+            if (entry.IsDirectory)
+            {
+                error = "Is a directory";
+                return false;
+            }
 
-            if (target.StartsWith("/"))
+            // .sh file not readable
+            if (!string.IsNullOrEmpty(entry.Type) && entry.Type.ToLower() == "sh")
             {
-                dir = root;
-                parts = target.Substring(1).Split('/', StringSplitOptions.RemoveEmptyEntries);
+                error = "File is executable and cannot be read";
+                return false;
             }
-            else
+
+            // File too large
+            if (!string.IsNullOrEmpty(entry.Content))
             {
-                dir = currentDirectory;
-                parts = target.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                var lines = entry.Content.Split('\n');
+                if (lines.Length > 1000)
+                {
+                    error = "File too large (1,000 line limit)";
+                    return false;
+                }
             }
+
+            content = string.IsNullOrEmpty(entry.Content) ? "(empty file)" : entry.Content;
+            return true;
+        }
+
+        
+        public bool ChangeDirectory(string path, out string error)
+        {
+            error = null;
+            Console.WriteLine($"[DEBUG][CD] Attempting to cd to: '{path}' from '{currentDirectory.Name}'");
+
+            if (string.IsNullOrWhiteSpace(path))
+                path = "/";
+
+            var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            FileEntry dir = path.StartsWith("/") ? root : currentDirectory;
+
+            Console.WriteLine($"[DEBUG][CD] Starting dir: '{dir.Name}', children: {string.Join(", ", dir.Children.Keys)}");
 
             foreach (var part in parts)
             {
@@ -81,134 +92,126 @@ namespace Env0.Terminal.Filesystem
                         dir = dir.Parent;
                     continue;
                 }
+
+                Console.WriteLine($"[DEBUG][CD] Looking for part '{part}' in children: {string.Join(", ", dir.Children.Keys)}");
+
                 if (!dir.IsDirectory || !dir.Children.TryGetValue(part, out var next) || !next.IsDirectory)
                 {
+                    Console.WriteLine($"[DEBUG][CD] Failed to find directory: '{part}'");
                     error = $"No such directory: {part}";
                     return false;
                 }
                 dir = next;
             }
 
+            Console.WriteLine($"[DEBUG][CD] Directory change success: now at '{dir.Name}' (full path: {GetPathForEntry(dir)})");
+
             currentDirectory = dir;
+
+            // Show parent chain for sanity
+            var node = currentDirectory;
+            var parents = new List<string>();
+            while (node != null)
+            {
+                parents.Add(node.Name);
+                node = node.Parent;
+            }
+            parents.Reverse();
+            Console.WriteLine($"[DEBUG][CD] currentDirectory full parent chain: /{string.Join("/", parents)}");
+
             return true;
         }
 
-        // Helper to build full path by walking up parents to the root
-            
         public string GetCurrentDirectoryPath()
         {
             var stack = new Stack<string>();
             var dir = currentDirectory;
-            while (dir != null && dir.Parent != null)
+            while (dir != null)
             {
-                stack.Push(dir.Name);
+                if (!string.IsNullOrEmpty(dir.Name))
+                    stack.Push(dir.Name);
                 dir = dir.Parent;
             }
-            // If at root, stack will be empty. Represent as "/"
             return stack.Count == 0 ? "/" : "/" + string.Join("/", stack);
         }
-        
-        public bool GetFileContent(string filename, out string content, out string error)
+
+        // Used for debug output and prompt
+        private string GetPathForEntry(FileEntry entry)
         {
-            content = null;
-            error = null;
-            if (string.IsNullOrWhiteSpace(filename))
+            if (entry == null) return "/";
+            var stack = new Stack<string>();
+            var node = entry;
+            while (node != null)
             {
-                error = "No file specified.";
-                return false;
+                if (!string.IsNullOrEmpty(node.Name))
+                    stack.Push(node.Name);
+                node = node.Parent;
             }
-
-            var name = filename.Trim();
-
-            if (!currentDirectory.IsDirectory || !currentDirectory.Children.TryGetValue(name, out var entry))
-            {
-                error = $"No such file: {filename}";
-                return false;
-            }
-
-            if (entry.IsDirectory)
-            {
-                error = $"{filename} is a directory.";
-                return false;
-            }
-
-            // Check for .sh
-            if (entry.Name.EndsWith(".sh", StringComparison.OrdinalIgnoreCase))
-            {
-                error = "file is executable and cannot be read";
-                return false;
-            }
-
-            
-            // File too large (per spec: max 1000 lines)
-            var lines = entry.Content?.Split('\n');
-            if (lines != null && lines.Length > 1000)
-            {
-                error = "bash: read: File too large (1,000 line limit).";
-                return false;
-            }
-
-            // Empty file
-            if (string.IsNullOrWhiteSpace(entry.Content))
-            {
-                content = "(empty file)";
-                return true;
-            }
-
-            content = entry.Content;
-            return true;
+            return stack.Count == 0 ? "/" : "/" + string.Join("/", stack);
         }
 
-        // ---------- NEW HELPER BELOW ----------
-        // This does NOT mutate any state. Use for path-based 'ls', 'cat', etc.
-
-        public bool TryGetDirectory(string path, out FileSystemEntry dir, out string error)
+        // This method now **only** calls the correct converter!
+        public static FilesystemManager FromPocoRoot(FileEntry pocoRoot)
         {
-            dir = null;
+            // Build FS tree with correct parent pointers, always!
+            var fsRoot = FileEntryToFileSystemEntryConverter.Convert("", pocoRoot, null);
+            return new FilesystemManager(fsRoot);
+        }
+
+        public bool TryGetEntry(string path, out FileEntry entry, out string error)
+        {
             error = null;
-
-            if (string.IsNullOrWhiteSpace(path) || path == ".")
+            entry = null;
+            if (string.IsNullOrWhiteSpace(path))
             {
-                dir = currentDirectory;
-                return true;
+                error = "No such file or directory";
+                return false;
             }
 
-            FileSystemEntry start;
-            string[] parts;
-            if (path.StartsWith("/"))
-            {
-                start = root;
-                parts = path.Substring(1).Split('/', StringSplitOptions.RemoveEmptyEntries);
-            }
-            else
-            {
-                start = currentDirectory;
-                parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            }
+            var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            FileEntry node = path.StartsWith("/") ? root : currentDirectory;
 
-            var temp = start;
             foreach (var part in parts)
             {
                 if (part == ".") continue;
                 if (part == "..")
                 {
-                    if (temp.Parent != null)
-                        temp = temp.Parent;
+                    node = node?.Parent ?? node;
                     continue;
                 }
-                if (!temp.IsDirectory || !temp.Children.TryGetValue(part, out var next) || !next.IsDirectory)
+
+                if (node?.Children == null || !node.Children.TryGetValue(part, out node))
                 {
-                    error = $"No such directory: {part}";
+                    error = "No such file or directory";
                     return false;
                 }
-                temp = next;
             }
 
-            dir = temp;
+            entry = node;
             return true;
         }
 
-        // --------------------------------------
-        // TODO: etc.
+        public bool TryGetDirectory(string path, out FileEntry dir, out string error)
+        {
+            dir = null;
+            error = null;
+            if (!TryGetEntry(path, out var entry, out error))
+            {
+                error = error ?? "No such directory";
+                return false;
+            }
+
+            if (!entry.IsDirectory)
+            {
+                error = "Not a directory";
+                return false;
+            }
+
+            dir = entry;
+            return true;
+        }
+
+        
+        // ... any other methods (TryGetDirectory, etc.) remain unchanged ...
     }
 }

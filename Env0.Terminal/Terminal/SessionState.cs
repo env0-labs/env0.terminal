@@ -5,21 +5,24 @@ using Env0.Terminal.Config.Pocos;
 
 namespace Env0.Terminal.Terminal
 {
-    // Holds all mutable state for the current terminal session.
+    /// <summary>
+    /// Holds all mutable state for the current terminal session.
+    /// </summary>
     public class SessionState
     {
         // Local user info (assigned at startup, never validated)
         public string Username { get; set; }
-        public string Password { get; set; } // flavor only, not validated
+        public string Password { get; set; }
 
         // Device context
-        public string Hostname { get; set; } // Current device hostname
-        public string Domain { get; set; }   // Game/session domain
+        public string Hostname { get; set; }
+        public string Domain { get; set; }
 
-        // Working directory (for the current session/device)
+        // Working directory string (for the current session/device)
+        // Only for prompt; always synced with FilesystemManager.currentDirectory!
         public string CurrentWorkingDirectory { get; set; }
 
-        // Managers
+        // Core managers and device pointer
         public FilesystemManager FilesystemManager { get; set; }
         public NetworkManager NetworkManager { get; set; }
         public DeviceInfo DeviceInfo { get; set; }
@@ -33,22 +36,26 @@ namespace Env0.Terminal.Terminal
         // Debug flag
         public bool DebugMode { get; set; } = false;
 
+        // The real "where am I" for commands is always FilesystemManager.currentDirectory!
+
         // Constructor
         public SessionState()
         {
-            // Initialize default state
             Username = "player";
             Password = string.Empty;
             Hostname = "sbc";
             Domain = "node.zero";
-            CurrentWorkingDirectory = "/";
+            CurrentWorkingDirectory = "/"; // always set from FS pointer after session init
             CommandHistory = new List<string>();
             SshStack = new Stack<SshSessionContext>();
             DebugMode = false;
         }
     }
 
-    // Used to track SSH session context for hopping (expand as needed)
+    /// <summary>
+    /// Used to track SSH session context for hopping (expand as needed).
+    /// Captures both the FS pointer and the string path.
+    /// </summary>
     public class SshSessionContext
     {
         public string Username { get; set; }

@@ -83,11 +83,11 @@ namespace Env0.Terminal.Terminal.Commands
                 return new CommandResult($"bash: ssh: Could not load filesystem '{fsFilename}' for device.\n\n", isError: true);
 
             // 10. Build new root FS
-            var rootEntry = new FileSystemEntry
+            var rootEntry = new FileEntry
             {
                 Name = "/",
-                IsDirectory = true,
-                Children = new System.Collections.Generic.Dictionary<string, FileSystemEntry>()
+                Type = "dir",
+                Children = new System.Collections.Generic.Dictionary<string, FileEntry>()
             };
 
             foreach (var kvp in filesystem.Root)

@@ -6,9 +6,17 @@ namespace Env0.Terminal.Config.Pocos
     [JsonConverter(typeof(FileEntryConverter))]
     public class FileEntry
     {
-        // If "type" == "file", it's a file node; otherwise, it's a directory node.
         public string Type { get; set; } = ""; // "file" or "" (directory)
-        public string Content { get; set; }   // Only for files; always null for dirs
-        public Dictionary<string, FileEntry> Children { get; set; } // Only for dirs; always null for files
+        public string Content { get; set; }
+        public Dictionary<string, FileEntry> Children { get; set; }
+
+        // ---- PATCH: RUNTIME ONLY ----
+        [JsonIgnore]
+        public string Name { get; set; }
+
+        [JsonIgnore]
+        public FileEntry Parent { get; set; }
+
+        public bool IsDirectory => string.IsNullOrEmpty(Type) || Type.ToLower() == "dir";
     }
 }

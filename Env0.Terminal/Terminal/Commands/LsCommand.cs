@@ -1,4 +1,7 @@
 using Env0.Terminal.Filesystem;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Env0.Terminal.Terminal.Commands
 {
@@ -8,15 +11,38 @@ namespace Env0.Terminal.Terminal.Commands
         {
             var fsManager = session.FilesystemManager;
             string targetDir = args.Length == 0 || string.IsNullOrWhiteSpace(args[0])
-                ? "." // Current dir
+                ? session.CurrentWorkingDirectory // USE CWD instead of "."
                 : args[0];
 
-            // Use the new helper!
+            // If someone literally types ".", treat as CWD
+            if (targetDir == ".")
+                targetDir = session.CurrentWorkingDirectory;
+
+            // Debug: print which directory is being listed
+            Console.WriteLine($"[DEBUG][LS] Listing directory: '{targetDir}'");
+
             if (!fsManager.TryGetDirectory(targetDir, out var dir, out var error))
+            {
+                Console.WriteLine($"[DEBUG][LS] TryGetDirectory failed: {error}");
                 return new CommandResult($"bash: ls: {error}\n\n", isError: true);
+            }
 
             if (!dir.IsDirectory)
+            {
+                Console.WriteLine($"[DEBUG][LS] Not a directory: {targetDir}");
                 return new CommandResult($"bash: ls: Not a directory: {targetDir}\n\n", isError: true);
+            }
+
+            // Debug: print full parent chain for the listed directory
+            var node = dir;
+            var chain = new List<string>();
+            while (node != null)
+            {
+                chain.Add(node.Name);
+                node = node.Parent;
+            }
+            chain.Reverse();
+            Console.WriteLine($"[DEBUG][LS] Listed directory parent chain: /{string.Join("/", chain)}");
 
             if (dir.Children.Count == 0)
                 return new CommandResult(string.Empty);

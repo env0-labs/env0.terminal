@@ -1,4 +1,5 @@
 using Env0.Terminal.Config.Pocos;
+using System.Net;
 
 namespace Env0.Terminal.Network
 {
@@ -28,12 +29,38 @@ namespace Env0.Terminal.Network
             return _devices.FirstOrDefault(d => string.Equals(d.Hostname, hostname, StringComparison.OrdinalIgnoreCase));
         }
 
-        // Return all devices on the current subnet (simulate nmap)
-        public List<DeviceInfo> GetDevicesOnSubnet(string subnet)
+        //Subnet/CIDR matching helper
+        public static bool IsIpInSubnet(string ipString, string cidr)
         {
-            // Basic: Assume devices have a Subnet property; adjust as needed.
-            return _devices.Where(d => string.Equals(d.Subnet, subnet, StringComparison.OrdinalIgnoreCase)).ToList();
+            var ip = IPAddress.Parse(ipString);
+            var parts = cidr.Split('/');
+            if (parts.Length != 2) return false;
+
+            var network = IPAddress.Parse(parts[0]);
+            int maskLength = int.Parse(parts[1]);
+
+            var ipBytes = ip.GetAddressBytes();
+            var networkBytes = network.GetAddressBytes();
+
+            int bits = maskLength;
+            for (int i = 0; i < ipBytes.Length; i++)
+            {
+                int mask = bits >= 8 ? 255 : (bits <= 0 ? 0 : 256 - (1 << (8 - bits)));
+                if ((ipBytes[i] & mask) != (networkBytes[i] & mask))
+                    return false;
+                bits -= 8;
+            }
+            return true;
         }
+        
+        // Return all devices on the current subnet (simulate nmap)
+        public List<DeviceInfo> GetDevicesOnSubnet(string cidr)
+        {
+            return _devices.Where(d =>
+                d.Interfaces != null && d.Interfaces.Any(iface => IsIpInSubnet(iface.Ip, cidr))
+            ).ToList();
+        }
+
 
         // nmap: Show all devices visible from the current device's network context
         public List<NmapResult> Nmap()
@@ -56,6 +83,12 @@ namespace Env0.Terminal.Network
             return results;
         }
 
+        public IReadOnlyList<DeviceInfo> GetAllDevices()
+        {
+            return _devices.AsReadOnly();
+        }
+
+        
         // ifconfig: List all interfaces for the current device
         public List<DeviceInterface> ListInterfaces()
         {

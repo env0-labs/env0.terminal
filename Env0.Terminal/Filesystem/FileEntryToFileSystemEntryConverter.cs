@@ -16,27 +16,27 @@ namespace Env0.Terminal.Filesystem
         /// <param name="entry">The FileEntry POCO node.</param>
         /// <param name="parent">Parent FileSystemEntry node, or null if root.</param>
         /// <returns>FileSystemEntry root of the subtree.</returns>
-        public static FileSystemEntry Convert(string name, FileEntry entry, FileSystemEntry parent = null)
+        public static FileEntry Convert(string name, FileEntry entry, FileEntry parent = null)
         {
-            var fsEntry = new FileSystemEntry
+            var fsEntry = new FileEntry
             {
                 Name = name,
-                IsDirectory = string.IsNullOrEmpty(entry.Type), // Or use a better IsDirectory test if you have one
-                Content = entry.Content,
+                Type = entry.Type,
                 Parent = parent,
-                Children = new Dictionary<string, FileSystemEntry>()
+                Children = new Dictionary<string, FileEntry>()
             };
 
             if (fsEntry.IsDirectory && entry.Children != null)
             {
                 foreach (var kvp in entry.Children)
                 {
+                    // Always pass 'fsEntry' as the parent!
                     var child = Convert(kvp.Key, kvp.Value, fsEntry);
                     fsEntry.Children.Add(kvp.Key, child);
                 }
             }
-
             return fsEntry;
         }
+
     }
 }
