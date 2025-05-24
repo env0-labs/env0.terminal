@@ -1,9 +1,9 @@
-using Xunit;
+using Env0.Terminal.Config.Pocos;
+using Env0.Terminal.Filesystem;
 using Env0.Terminal.Terminal;
 using Env0.Terminal.Terminal.Commands;
-using Env0.Terminal.Filesystem;
 
-namespace Env0.Terminal.Tests.Commands
+namespace Env0.Terminal.Tests.StandardTests.CommandsTests
 {
     public class CatCommandTests
     {
@@ -13,7 +13,7 @@ namespace Env0.Terminal.Tests.Commands
         [Fact]
         public void CatCommand_MissingOrDir_ReturnsError()
         {
-            var root = new FileSystemEntry { Name = "/", IsDirectory = true };
+            var root = new FileEntry() { Name = "/", Type = "dir", Children = new Dictionary<string, FileEntry>() };
             var session = new SessionState { FilesystemManager = new FilesystemManager(root) };
             var cmd = new CatCommand();
 
@@ -30,8 +30,21 @@ namespace Env0.Terminal.Tests.Commands
         [Fact]
         public void CatCommand_File_ReturnsContents()
         {
-            var file = new FileSystemEntry { Name = "foo.txt", IsDirectory = false, Content = "hello" };
-            var root = new FileSystemEntry { Name = "/", IsDirectory = true, Children = { { "foo.txt", file } } };
+            var file = new FileEntry
+            {
+                Name = "foo.txt",
+                Type = "file",
+                Content = "hello"
+            };
+            var root = new FileEntry
+            {
+                Name = "/",
+                Type = "dir", // or just "" if you prefer
+                Children = new Dictionary<string, FileEntry>()
+            };
+            root.Children.Add("foo.txt", file);
+            file.Parent = root;
+
             var session = new SessionState { FilesystemManager = new FilesystemManager(root) };
             var cmd = new CatCommand();
 

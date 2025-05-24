@@ -18,22 +18,25 @@ namespace Env0.Terminal.Terminal.Commands
             if (targetDir == ".")
                 targetDir = session.CurrentWorkingDirectory;
 
-            // Debug: print which directory is being listed
-            Console.WriteLine($"[DEBUG][LS] Listing directory: '{targetDir}'");
+            // TODO: hook up to debug flag
+            // Console.WriteLine($"[DEBUG][LS] Listing directory: '{targetDir}'");
 
             if (!fsManager.TryGetDirectory(targetDir, out var dir, out var error))
             {
-                Console.WriteLine($"[DEBUG][LS] TryGetDirectory failed: {error}");
+                // TODO: hook up to debug flag
+                // Console.WriteLine($"[DEBUG][LS] TryGetDirectory failed: {error}");
                 return new CommandResult($"bash: ls: {error}\n\n", isError: true);
             }
 
             if (!dir.IsDirectory)
             {
-                Console.WriteLine($"[DEBUG][LS] Not a directory: {targetDir}");
+                // TODO: hook up to debug flag
+                // Console.WriteLine($"[DEBUG][LS] Not a directory: {targetDir}");
                 return new CommandResult($"bash: ls: Not a directory: {targetDir}\n\n", isError: true);
             }
 
-            // Debug: print full parent chain for the listed directory
+            // TODO: hook up to debug flag
+            /*
             var node = dir;
             var chain = new List<string>();
             while (node != null)
@@ -43,6 +46,7 @@ namespace Env0.Terminal.Terminal.Commands
             }
             chain.Reverse();
             Console.WriteLine($"[DEBUG][LS] Listed directory parent chain: /{string.Join("/", chain)}");
+            */
 
             if (dir.Children.Count == 0)
                 return new CommandResult(string.Empty);

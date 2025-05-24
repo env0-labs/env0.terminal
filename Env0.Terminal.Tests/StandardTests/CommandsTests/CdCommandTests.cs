@@ -1,9 +1,9 @@
-using Xunit;
+using Env0.Terminal.Config.Pocos;
+using Env0.Terminal.Filesystem;
 using Env0.Terminal.Terminal;
 using Env0.Terminal.Terminal.Commands;
-using Env0.Terminal.Filesystem;
 
-namespace Env0.Terminal.Tests.Commands
+namespace Env0.Terminal.Tests.StandardTests.CommandsTests
 {
     public class CdCommandTests
     {
@@ -13,7 +13,14 @@ namespace Env0.Terminal.Tests.Commands
         [Fact]
         public void CdCommand_ChangeToRoot_Succeeds()
         {
-            var root = new FileSystemEntry { Name = "/", IsDirectory = true };
+            
+            var root = new FileEntry
+            {
+                Name = "/",
+                Type = "dir", // or just "" if you prefer
+                Children = new Dictionary<string, FileEntry>()
+            };
+  
             var session = new SessionState { FilesystemManager = new FilesystemManager(root) };
             var cmd = new CdCommand();
 
@@ -28,7 +35,14 @@ namespace Env0.Terminal.Tests.Commands
         [Fact]
         public void CdCommand_InvalidPath_ReturnsError()
         {
-            var root = new FileSystemEntry { Name = "/", IsDirectory = true };
+            
+            var root = new FileEntry
+            {
+                Name = "/",
+                Type = "dir", // or just "" if you prefer
+                Children = new Dictionary<string, FileEntry>()
+            };
+
             var session = new SessionState { FilesystemManager = new FilesystemManager(root) };
             var cmd = new CdCommand();
 

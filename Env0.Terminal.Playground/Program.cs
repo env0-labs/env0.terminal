@@ -48,12 +48,14 @@ namespace Env0.Terminal.Playground
                 NetworkManager = networkManager
             };
 
-            // Show initial FS debug output
+            // TODO initial FS debug output - leaving in and commented for possible debug flag
+            /*
             Console.WriteLine($"Filesystem root initialized with {rootEntry.Children.Count} children:");
             foreach (var kv in rootEntry.Children)
                 Console.WriteLine($"  - {kv.Key} (dir? {kv.Value.Type == ""})");
 
             Console.WriteLine($"Welcome to env0.terminal. Starting at {session.Hostname}. Type 'help' for commands.");
+            */
 
             var sshHandler = new SSHHandler(networkManager);
             var commandHandler = new CommandHandler(false);

@@ -29,7 +29,6 @@ namespace Env0.Terminal.Filesystem
             return currentDirectory.Name;
         }
 
-        
         public bool GetFileContent(string path, out string content, out string error)
         {
             content = null;
@@ -48,7 +47,7 @@ namespace Env0.Terminal.Filesystem
             }
 
             // .sh file not readable
-            if (!string.IsNullOrEmpty(entry.Type) && entry.Type.ToLower() == "sh")
+            if (!string.IsNullOrEmpty(entry.Type) && entry.Type.ToLower().TrimStart('.') == "sh")
             {
                 error = "File is executable and cannot be read";
                 return false;
@@ -69,11 +68,11 @@ namespace Env0.Terminal.Filesystem
             return true;
         }
 
-        
         public bool ChangeDirectory(string path, out string error)
         {
             error = null;
-            Console.WriteLine($"[DEBUG][CD] Attempting to cd to: '{path}' from '{currentDirectory.Name}'");
+            // TODO: hook up to debug flag
+            // Console.WriteLine($"[DEBUG][CD] Attempting to cd to: '{path}' from '{currentDirectory.Name}'");
 
             if (string.IsNullOrWhiteSpace(path))
                 path = "/";
@@ -81,7 +80,8 @@ namespace Env0.Terminal.Filesystem
             var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
             FileEntry dir = path.StartsWith("/") ? root : currentDirectory;
 
-            Console.WriteLine($"[DEBUG][CD] Starting dir: '{dir.Name}', children: {string.Join(", ", dir.Children.Keys)}");
+            // TODO: hook up to debug flag
+            // Console.WriteLine($"[DEBUG][CD] Starting dir: '{dir.Name}', children: {string.Join(", ", dir.Children.Keys)}");
 
             foreach (var part in parts)
             {
@@ -93,22 +93,26 @@ namespace Env0.Terminal.Filesystem
                     continue;
                 }
 
-                Console.WriteLine($"[DEBUG][CD] Looking for part '{part}' in children: {string.Join(", ", dir.Children.Keys)}");
+                // TODO: hook up to debug flag
+                // Console.WriteLine($"[DEBUG][CD] Looking for part '{part}' in children: {string.Join(", ", dir.Children.Keys)}");
 
                 if (!dir.IsDirectory || !dir.Children.TryGetValue(part, out var next) || !next.IsDirectory)
                 {
-                    Console.WriteLine($"[DEBUG][CD] Failed to find directory: '{part}'");
+                    // TODO: hook up to debug flag
+                    // Console.WriteLine($"[DEBUG][CD] Failed to find directory: '{part}'");
                     error = $"No such directory: {part}";
                     return false;
                 }
                 dir = next;
             }
 
-            Console.WriteLine($"[DEBUG][CD] Directory change success: now at '{dir.Name}' (full path: {GetPathForEntry(dir)})");
+            // TODO: hook up to debug flag
+            // Console.WriteLine($"[DEBUG][CD] Directory change success: now at '{dir.Name}' (full path: {GetPathForEntry(dir)})");
 
             currentDirectory = dir;
 
-            // Show parent chain for sanity
+            // TODO: hook up to debug flag
+            /*
             var node = currentDirectory;
             var parents = new List<string>();
             while (node != null)
@@ -118,6 +122,7 @@ namespace Env0.Terminal.Filesystem
             }
             parents.Reverse();
             Console.WriteLine($"[DEBUG][CD] currentDirectory full parent chain: /{string.Join("/", parents)}");
+            */
 
             return true;
         }
@@ -135,7 +140,6 @@ namespace Env0.Terminal.Filesystem
             return stack.Count == 0 ? "/" : "/" + string.Join("/", stack);
         }
 
-        // Used for debug output and prompt
         private string GetPathForEntry(FileEntry entry)
         {
             if (entry == null) return "/";
@@ -150,10 +154,8 @@ namespace Env0.Terminal.Filesystem
             return stack.Count == 0 ? "/" : "/" + string.Join("/", stack);
         }
 
-        // This method now **only** calls the correct converter!
         public static FilesystemManager FromPocoRoot(FileEntry pocoRoot)
         {
-            // Build FS tree with correct parent pointers, always!
             var fsRoot = FileEntryToFileSystemEntryConverter.Convert("", pocoRoot, null);
             return new FilesystemManager(fsRoot);
         }
@@ -210,8 +212,5 @@ namespace Env0.Terminal.Filesystem
             dir = entry;
             return true;
         }
-
-        
-        // ... any other methods (TryGetDirectory, etc.) remain unchanged ...
     }
 }

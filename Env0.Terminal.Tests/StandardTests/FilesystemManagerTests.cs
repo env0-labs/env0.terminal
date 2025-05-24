@@ -1,61 +1,56 @@
 using Xunit;
 using System.Collections.Generic;
+using Env0.Terminal.Config.Pocos;
 using Env0.Terminal.Filesystem;
 
 [Trait("TestType", "Critical")]
 public class FilesystemManagerTests
 {
-private FileSystemEntry BuildTestFilesystem()
+private FileEntry BuildTestFilesystem()
 {
-    var welcomeTxt = new FileSystemEntry
+    var welcomeTxt = new FileEntry()
     {
         Name = "welcome.txt",
-        IsDirectory = false,
         Content = "Welcome to your basic UNIX machine!",
         Type = "file"
     };
-    var userDir = new FileSystemEntry
+    var userDir = new FileEntry()
     {
         Name = "user",
-        IsDirectory = true,
-        Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase)
+        Children = new Dictionary<string, FileEntry>(StringComparer.OrdinalIgnoreCase)
         {
             { "welcome.txt", welcomeTxt }
         },
         Type = "dir"
     };
-    var homeDir = new FileSystemEntry
+    var homeDir = new FileEntry()
     {
         Name = "home",
-        IsDirectory = true,
-        Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase)
+        Children = new Dictionary<string, FileEntry>(StringComparer.OrdinalIgnoreCase)
         {
             { "user", userDir }
         },
         Type = "dir"
     };
-    var hostnameTxt = new FileSystemEntry
+    var hostnameTxt = new FileEntry()
     {
         Name = "hostname.txt",
-        IsDirectory = false,
         Content = "Basic UNIX Machine",
         Type = "file"
     };
-    var etcDir = new FileSystemEntry
+    var etcDir = new FileEntry()
     {
         Name = "etc",
-        IsDirectory = true,
-        Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase)
+        Children = new Dictionary<string, FileEntry>(StringComparer.OrdinalIgnoreCase)
         {
             { "hostname.txt", hostnameTxt }
         },
         Type = "dir"
     };
-    var root = new FileSystemEntry
+    var root = new FileEntry()
     {
         Name = "root",
-        IsDirectory = true,
-        Children = new Dictionary<string, FileSystemEntry>(StringComparer.OrdinalIgnoreCase)
+        Children = new Dictionary<string, FileEntry>(StringComparer.OrdinalIgnoreCase)
         {
             { "home", homeDir },
             { "etc", etcDir }
@@ -143,7 +138,7 @@ public void GetFileContent_Directory_ReturnsError()
     var ok = fs.GetFileContent("user", out content, out error);
 
     Assert.False(ok);
-    Assert.Equal("user is a directory.", error);
+    Assert.Equal("Is a directory", error);
 }
 
 [Fact]
@@ -156,7 +151,7 @@ public void GetFileContent_MissingFile_ReturnsError()
     var ok = fs.GetFileContent("nofile.txt", out content, out error);
 
     Assert.False(ok);
-    Assert.Equal("No such file: nofile.txt", error);
+    Assert.Equal("No such file or directory", error);
 }
 
 [Fact]

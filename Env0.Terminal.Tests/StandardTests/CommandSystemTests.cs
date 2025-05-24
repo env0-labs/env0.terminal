@@ -3,6 +3,7 @@ using Xunit;
 using Env0.Terminal.Terminal;
 using Env0.Terminal.Terminal.Commands;
 using Env0.Terminal.Filesystem;
+using Env0.Terminal.Config.Pocos;
 
 
 namespace Env0.Terminal.Tests
@@ -55,12 +56,13 @@ namespace Env0.Terminal.Tests
         {
             var handler = new CommandHandler(debugMode: false);
 
-            // Patch: Provide a minimal, valid FilesystemManager for the session
-            var rootEntry = new FileSystemEntry
+            var rootEntry = new FileEntry
             {
                 Name = "/",
-                IsDirectory = true
+                Type = "dir",
+                Children = new Dictionary<string, FileEntry>() // ← critical
             };
+
             var dummySession = new SessionState
             {
                 FilesystemManager = new FilesystemManager(rootEntry)
@@ -68,10 +70,10 @@ namespace Env0.Terminal.Tests
 
             var result = handler.Execute("ls", dummySession);
 
-            // 'ls' may be stubbed but must still return a CommandResult, not error
             Assert.NotNull(result);
             Assert.IsType<CommandResult>(result);
         }
+
 
 
         /// <summary>

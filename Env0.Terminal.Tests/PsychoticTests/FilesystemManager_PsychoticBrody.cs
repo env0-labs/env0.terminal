@@ -1,5 +1,6 @@
 using Xunit;
 using Env0.Terminal.Filesystem;
+using Env0.Terminal.Config.Pocos;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,14 +10,12 @@ namespace Env0.Terminal.Tests
     public class PsychoticFilesystemManagerTests
     {
         [Trait("TestType", "Psychotic")]
-        // Helper to make a directory cycle
-        private FileSystemEntry MakeCycle()
+        private FileEntry MakeCycle()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
-            var loop = new FileSystemEntry { Name = "loop", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir", Parent = root };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
+            var loop = new FileEntry { Name = "loop", Type = "dir", Parent = root, Children = new Dictionary<string, FileEntry>() };
             root.Children.Add("loop", loop);
-            // Create a cycle: loop's child points back to root
-            loop.Children.Add("root", root);
+            loop.Children.Add("root", root); // cycle
             return root;
         }
 
@@ -24,7 +23,6 @@ namespace Env0.Terminal.Tests
         public void CycleDetection_ShouldNotStackOverflowOrLoopForever()
         {
             var fs = new FilesystemManager(MakeCycle());
-            // If this hangs, test runner will kill it. This exposes stack overflows or infinite loops.
             var items = fs.ListCurrentDirectory();
             Assert.Contains("loop", items);
         }
@@ -32,11 +30,10 @@ namespace Env0.Terminal.Tests
         [Fact]
         public void PathTraversal_AttemptToCdDotDotFromRoot_ShouldStayAtRoot()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
             var fs = new FilesystemManager(root);
             string error;
             fs.ChangeDirectory("..", out error);
-            // Should still be at root
             var items = fs.ListCurrentDirectory();
             Assert.Equal(new List<string>(), error == null ? items : new List<string>());
         }
@@ -44,8 +41,8 @@ namespace Env0.Terminal.Tests
         [Fact]
         public void UnicodeFilenames_ShouldBeHandledCorrectly()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
-            var emoji = new FileSystemEntry { Name = "💩file.txt", IsDirectory = false, Content = "Unicode shit!", Type = "file", Parent = root };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
+            var emoji = new FileEntry { Name = "💩file.txt", Type = "file", Content = "Unicode shit!", Parent = root };
             root.Children.Add("💩file.txt", emoji);
 
             var fs = new FilesystemManager(root);
@@ -59,26 +56,25 @@ namespace Env0.Terminal.Tests
         [Fact]
         public void InsaneFileNameCharacters_ShouldBeHandledOrRejected()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
             string insaneName = string.Concat(Enumerable.Repeat("!", 256)) + "\0\t\n\r";
-            var insaneFile = new FileSystemEntry { Name = insaneName, IsDirectory = false, Content = "Madness", Type = "file", Parent = root };
+            var insaneFile = new FileEntry { Name = insaneName, Type = "file", Content = "Madness", Parent = root };
             root.Children.Add(insaneName, insaneFile);
 
             var fs = new FilesystemManager(root);
             string content, error;
             var result = fs.GetFileContent(insaneName, out content, out error);
-            // Should not crash, may fail gracefully or succeed
-            Assert.True(result || (error != null));
+            Assert.True(result || error != null);
         }
 
         [Fact]
         public void ExtremelyDeepDirectoryStructure_ShouldNotOverflow()
         {
-            FileSystemEntry current = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
-            FileSystemEntry root = current;
+            FileEntry current = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
+            FileEntry root = current;
             for (int i = 0; i < 1000; i++)
             {
-                var next = new FileSystemEntry { Name = $"dir{i}", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir", Parent = current };
+                var next = new FileEntry { Name = $"dir{i}", Type = "dir", Parent = current, Children = new Dictionary<string, FileEntry>() };
                 current.Children.Add($"dir{i}", next);
                 current = next;
             }
@@ -95,10 +91,11 @@ namespace Env0.Terminal.Tests
         [Fact]
         public void LargeNumberOfFiles_ShouldBeListedCorrectly()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
             for (int i = 0; i < 10000; i++)
             {
-                root.Children.Add($"file_{i}.txt", new FileSystemEntry { Name = $"file_{i}.txt", IsDirectory = false, Content = $"File {i}", Type = "file", Parent = root });
+                var file = new FileEntry { Name = $"file_{i}.txt", Type = "file", Content = $"File {i}", Parent = root };
+                root.Children.Add(file.Name, file);
             }
             var fs = new FilesystemManager(root);
             var items = fs.ListCurrentDirectory();
@@ -108,81 +105,76 @@ namespace Env0.Terminal.Tests
         [Fact]
         public void CatHugeFile_ShouldReturnFullContentOrError()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
             var sb = new StringBuilder();
             for (int i = 0; i < 1000000; i++) sb.Append("A");
-            var hugeFile = new FileSystemEntry { Name = "huge.txt", IsDirectory = false, Content = sb.ToString(), Type = "file", Parent = root };
+            var hugeFile = new FileEntry { Name = "huge.txt", Type = "file", Content = sb.ToString(), Parent = root };
             root.Children.Add("huge.txt", hugeFile);
 
             var fs = new FilesystemManager(root);
             string content, error;
             var result = fs.GetFileContent("huge.txt", out content, out error);
-            // Accept either all content or a "too large" error
             Assert.True((result && content.Length == 1000000) || (!result && error != null));
         }
 
         [Fact]
         public void DuplicateFileNames_ShouldNotBeAllowed()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
-            var fileA = new FileSystemEntry { Name = "duplicate.txt", IsDirectory = false, Content = "One", Type = "file", Parent = root };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
+            var fileA = new FileEntry { Name = "duplicate.txt", Type = "file", Content = "One", Parent = root };
             root.Children.Add("duplicate.txt", fileA);
-
-            // Try to add another entry with the same key, simulating corruption
             Assert.Throws<System.ArgumentException>(() => root.Children.Add("duplicate.txt", fileA));
         }
 
         [Fact]
         public void NullFileName_ShouldBeRejectedOrHandled()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
             Assert.Throws<System.ArgumentNullException>(() => root.Children.Add(null, null));
         }
 
         [Fact]
-        public void NullOrEmptyInputs_ShouldFailGracefully()
+        public void NullOrEmptyInputs_ShouldDefaultToRoot()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
+            var root = new FileEntry
+            {
+                Name = "root",
+                Type = "dir",
+                Children = new Dictionary<string, FileEntry>()
+            };
             var fs = new FilesystemManager(root);
             string error, content;
 
-            // Null filename
-            var result = fs.GetFileContent(null, out content, out error);
-            Assert.False(result);
+            Assert.False(fs.GetFileContent(null, out content, out error));
+            Assert.False(fs.GetFileContent("", out content, out error));
 
-            // Empty filename
-            result = fs.GetFileContent("", out content, out error);
-            Assert.False(result);
-
-            // Change directory to null
-            result = fs.ChangeDirectory(null, out error);
-            Assert.False(result);
-
-            // Change directory to empty string
-            result = fs.ChangeDirectory("", out error);
-            Assert.False(result);
+            // These now succeed because null/empty means "cd /"
+            Assert.True(fs.ChangeDirectory(null, out error));
+            Assert.True(fs.ChangeDirectory("", out error));
+            Assert.Null(error);
+            Assert.Equal("root", fs.CurrentDirectoryName());
         }
+
 
         [Fact]
         public void FileContentIsCaseSensitiveOrNot()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
-            var file = new FileSystemEntry { Name = "README.TXT", IsDirectory = false, Content = "Capital!", Type = "file", Parent = root };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
+            var file = new FileEntry { Name = "README.TXT", Type = "file", Content = "Capital!", Parent = root };
             root.Children.Add("README.TXT", file);
 
             var fs = new FilesystemManager(root);
             string content, error;
             var result = fs.GetFileContent("readme.txt", out content, out error);
-            // Decide: is your FS case sensitive?
             Assert.False(result);
         }
 
         [Fact]
         public void NonAsciiPathTraversal_ShouldNotBreak()
         {
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
-            var funky = new FileSystemEntry { Name = "üñîçødë", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir", Parent = root };
-            root.Children.Add("üñîçødë", funky);
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
+            var funky = new FileEntry { Name = "üñîçødë", Type = "dir", Children = new Dictionary<string, FileEntry>(), Parent = root };
+            root.Children.Add(funky.Name, funky);
 
             var fs = new FilesystemManager(root);
             string error;
@@ -194,8 +186,7 @@ namespace Env0.Terminal.Tests
         [Fact]
         public void CircularReferenceParentChain_ShouldNotCrash()
         {
-            // Parent chain points to self
-            var root = new FileSystemEntry { Name = "root", IsDirectory = true, Children = new Dictionary<string, FileSystemEntry>(), Type = "dir" };
+            var root = new FileEntry { Name = "root", Type = "dir", Children = new Dictionary<string, FileEntry>() };
             root.Parent = root;
 
             var fs = new FilesystemManager(root);
