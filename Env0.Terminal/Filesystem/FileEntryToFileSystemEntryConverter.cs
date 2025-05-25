@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Env0.Terminal.Config.Pocos;
 using Env0.Terminal.Filesystem;
@@ -21,22 +22,34 @@ namespace Env0.Terminal.Filesystem
             var fsEntry = new FileEntry
             {
                 Name = name,
-                Type = entry.Type,
                 Parent = parent,
-                Children = new Dictionary<string, FileEntry>()
+                Type = entry.Type
             };
 
-            if (fsEntry.IsDirectory && entry.Children != null)
+            if (!string.IsNullOrEmpty(entry.Type) && entry.Type.ToLower() == "file")
             {
-                foreach (var kvp in entry.Children)
-                {
-                    // Always pass 'fsEntry' as the parent!
-                    var child = Convert(kvp.Key, kvp.Value, fsEntry);
-                    fsEntry.Children.Add(kvp.Key, child);
-                }
+                // PATCH: Files get their content, no children!
+                fsEntry.Content = entry.Content;
+                fsEntry.Children = null;
+                Console.WriteLine($"[DEBUG] Converter: File '{name}', Content='{entry.Content ?? "NULL"}'");
             }
+            else
+            {
+                // Directory: clear content, set up children recursively
+                fsEntry.Content = null;
+                fsEntry.Children = new Dictionary<string, FileEntry>();
+                if (entry.Children != null)
+                {
+                    foreach (var kvp in entry.Children)
+                    {
+                        var child = Convert(kvp.Key, kvp.Value, fsEntry);
+                        fsEntry.Children.Add(kvp.Key, child);
+                    }
+                }
+                Console.WriteLine($"[DEBUG] Converter: Directory '{name}', ChildCount={fsEntry.Children.Count}");
+            }
+
             return fsEntry;
         }
-
     }
 }

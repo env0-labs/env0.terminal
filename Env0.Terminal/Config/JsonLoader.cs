@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq; // Needed for .All() in IsAscii
+using System.Linq;
 using Newtonsoft.Json;
 using Env0.Terminal.Config.Pocos;
 
@@ -33,13 +33,9 @@ namespace Env0.Terminal.Config
             return pathOptions.First();
         }
 
-        
         public static void LoadAll()
         {
             ValidationErrors.Clear();
-
-            // For each file, try the test output path first, then project root
-            // (add/remove more options if needed)
 
             // BootConfig
             BootConfig = LoadBootConfig(
@@ -74,29 +70,71 @@ namespace Env0.Terminal.Config
             // Filesystems 1-10
             for (int i = 1; i <= 10; i++)
             {
-                var fs = LoadFilesystem(
-                    ResolvePath(
-                        $"Config/Jsons/JsonFilesystems/Filesystem_{i}.json",
-                        $"Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_{i}.json"
-                    ),
-                    out var fsErrors
+                var path = ResolvePath(
+                    $"Config/Jsons/JsonFilesystems/Filesystem_{i}.json",
+                    $"Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_{i}.json"
                 );
+
+                // === Debug 1: Print raw JSON before deserialization ===
+                if (File.Exists(path))
+                {
+                    var raw = File.ReadAllText(path);
+                    DebugUtility.PrintContext("FS", $"==== RAW JSON FOR {path} ====");
+                    DebugUtility.PrintContext("FS", raw);
+                    DebugUtility.PrintContext("FS", "==================");
+                }
+
+                var fs = LoadFilesystem(path, out var fsErrors);
+
+                // === Debug 2: Print fs.Root state after deserialization ===
+                if (fs != null)
+                {
+                    DebugUtility.PrintContext("FS", $"fs.Root is null? {(fs.Root == null)}");
+                    if (fs.Root != null)
+                        DebugUtility.PrintContext("FS", $"fs.Root keys: {string.Join(", ", fs.Root.Keys)}");
+                    else
+                        DebugUtility.PrintContext("FS", "fs.Root keys: null");
+
+                    // === Debug 3: Print tutorial.txt content if present ===
+                    if (fs.Root != null && fs.Root.ContainsKey("tutorial.txt"))
+                        DebugUtility.PrintContext("FS", $"tutorial.txt content (from loader): {fs.Root["tutorial.txt"].Content ?? "NULL"}");
+                    else
+                        DebugUtility.PrintContext("FS", "tutorial.txt not found in fs.Root!");
+                }
+
                 Filesystems[$"Filesystem_{i}.json"] = fs;
                 ValidationErrors.AddRange(fsErrors);
             }
+
             // Filesystem_11.json (safe fallback)
-            var safeFs = LoadFilesystem(
-                ResolvePath(
-                    "Config/Jsons/JsonFilesystems/Filesystem_11.json",
-                    "Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_11.json"
-                ),
-                out var safeErrors
+            var safePath = ResolvePath(
+                "Config/Jsons/JsonFilesystems/Filesystem_11.json",
+                "Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_11.json"
             );
+            if (File.Exists(safePath))
+            {
+                var raw = File.ReadAllText(safePath);
+                DebugUtility.PrintContext("FS", $"==== RAW JSON FOR {safePath} ====");
+                DebugUtility.PrintContext("FS", raw);
+                DebugUtility.PrintContext("FS", "==================");
+            }
+
+            var safeFs = LoadFilesystem(safePath, out var safeErrors);
+
+            if (safeFs != null)
+            {
+                DebugUtility.PrintContext("FS", $"safeFs.Root is null? {safeFs.Root == null}");
+                if (safeFs.Root != null)
+                    DebugUtility.PrintContext("FS", $"safeFs.Root keys: {string.Join(", ", safeFs.Root.Keys)}");
+                else
+                    DebugUtility.PrintContext("FS", "safeFs.Root keys: null");
+            }
+
             Filesystems["Filesystem_11.json"] = safeFs;
             ValidationErrors.AddRange(safeErrors);
         }
 
-
+        // --- Rest of your methods are unchanged! ---
 
         internal static BootConfig LoadBootConfig(string path, out List<string> errors)
         {
@@ -136,14 +174,12 @@ namespace Env0.Terminal.Config
                 var json = File.ReadAllText(path);
                 var config = JsonConvert.DeserializeObject<UserConfig>(json);
 
-                // Null/empty checks
                 if (string.IsNullOrWhiteSpace(config?.Username) || string.IsNullOrWhiteSpace(config?.Password))
                 {
                     errors.Add("UserConfig: username or password is missing or empty (defaulting to player/password)");
                     return new UserConfig { Username = "player", Password = "password" };
                 }
 
-                // ASCII check
                 if (!IsAscii(config.Username) || !IsAscii(config.Password))
                 {
                     errors.Add("UserConfig: username or password contains non-ASCII characters (defaulting to player/password)");
@@ -183,7 +219,6 @@ namespace Env0.Terminal.Config
                 for (int i = 0; i < devices.Count; i++)
                 {
                     var device = devices[i];
-                    // Required fields
                     if (string.IsNullOrWhiteSpace(device.Ip)) errors.Add($"Device {i}: IP missing.");
                     if (string.IsNullOrWhiteSpace(device.Hostname)) errors.Add($"Device {i}: Hostname missing.");
                     if (string.IsNullOrWhiteSpace(device.Mac)) errors.Add($"Device {i}: MAC missing.");
@@ -194,7 +229,6 @@ namespace Env0.Terminal.Config
                     if (device.Ports == null) device.Ports = new List<string>();
                     if (string.IsNullOrWhiteSpace(device.Motd)) device.Motd = $"Welcome to {device.Hostname}";
 
-                    // Interface checks
                     if (device.Interfaces != null)
                     {
                         for (int j = 0; j < device.Interfaces.Count; j++)
@@ -217,7 +251,6 @@ namespace Env0.Terminal.Config
             }
         }
 
-        // Fully qualified Filesystem references below
         public static Env0.Terminal.Config.Pocos.Filesystem LoadFilesystem(string path, out List<string> errors)
         {
             errors = new List<string>();
@@ -239,9 +272,7 @@ namespace Env0.Terminal.Config
                     return new Env0.Terminal.Config.Pocos.Filesystem();
                 }
 
-                // Recursively validate entries
                 ValidateEntries(fs.Root, errors, Path.GetFileName(path), "/");
-
                 return fs;
             }
             catch (Exception ex)
@@ -264,7 +295,6 @@ namespace Env0.Terminal.Config
                     continue;
                 }
 
-                // File
                 if (entry.Type == "file")
                 {
                     if (entry.Content == null)
@@ -272,7 +302,6 @@ namespace Env0.Terminal.Config
                     if (entry.Children != null)
                         errors.Add($"{fsName}: File '{name}' at {path} should not have children.");
                 }
-                // Directory
                 else
                 {
                     if (entry.Children == null)
@@ -285,7 +314,6 @@ namespace Env0.Terminal.Config
 
         private static bool IsAscii(string value)
         {
-            // Check for null/empty just in case
             return !string.IsNullOrEmpty(value) && value.All(c => c <= 127);
         }
     }

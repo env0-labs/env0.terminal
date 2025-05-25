@@ -40,20 +40,24 @@ namespace Env0.Terminal.Filesystem
                 return false;
             }
 
+            // ==== DEBUG with tag/context ====
+            if (entry != null)
+                DebugUtility.PrintContext("FS", $"GetFileContent: Entry={entry.Name ?? "NULL"}, Content={entry.Content ?? "NULL"}");
+            else
+                DebugUtility.PrintContext("FS", $"GetFileContent: Entry is NULL");
+
             if (entry.IsDirectory)
             {
                 error = "Is a directory";
                 return false;
             }
 
-            // .sh file not readable
             if (!string.IsNullOrEmpty(entry.Type) && entry.Type.ToLower().TrimStart('.') == "sh")
             {
                 error = "File is executable and cannot be read";
                 return false;
             }
 
-            // File too large
             if (!string.IsNullOrEmpty(entry.Content))
             {
                 var lines = entry.Content.Split('\n');
@@ -71,17 +75,11 @@ namespace Env0.Terminal.Filesystem
         public bool ChangeDirectory(string path, out string error)
         {
             error = null;
-            // TODO: hook up to debug flag
-            // Console.WriteLine($"[DEBUG][CD] Attempting to cd to: '{path}' from '{currentDirectory.Name}'");
-
             if (string.IsNullOrWhiteSpace(path))
                 path = "/";
 
             var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
             FileEntry dir = path.StartsWith("/") ? root : currentDirectory;
-
-            // TODO: hook up to debug flag
-            // Console.WriteLine($"[DEBUG][CD] Starting dir: '{dir.Name}', children: {string.Join(", ", dir.Children.Keys)}");
 
             foreach (var part in parts)
             {
@@ -92,38 +90,14 @@ namespace Env0.Terminal.Filesystem
                         dir = dir.Parent;
                     continue;
                 }
-
-                // TODO: hook up to debug flag
-                // Console.WriteLine($"[DEBUG][CD] Looking for part '{part}' in children: {string.Join(", ", dir.Children.Keys)}");
-
                 if (!dir.IsDirectory || !dir.Children.TryGetValue(part, out var next) || !next.IsDirectory)
                 {
-                    // TODO: hook up to debug flag
-                    // Console.WriteLine($"[DEBUG][CD] Failed to find directory: '{part}'");
                     error = $"No such directory: {part}";
                     return false;
                 }
                 dir = next;
             }
-
-            // TODO: hook up to debug flag
-            // Console.WriteLine($"[DEBUG][CD] Directory change success: now at '{dir.Name}' (full path: {GetPathForEntry(dir)})");
-
             currentDirectory = dir;
-
-            // TODO: hook up to debug flag
-            /*
-            var node = currentDirectory;
-            var parents = new List<string>();
-            while (node != null)
-            {
-                parents.Add(node.Name);
-                node = node.Parent;
-            }
-            parents.Reverse();
-            Console.WriteLine($"[DEBUG][CD] currentDirectory full parent chain: /{string.Join("/", parents)}");
-            */
-
             return true;
         }
 
@@ -190,6 +164,13 @@ namespace Env0.Terminal.Filesystem
             }
 
             entry = node;
+
+            // ==== DEBUG with tag/context ====
+            if (entry != null)
+                DebugUtility.PrintContext("FS", $"TryGetEntry: Entry={entry.Name ?? "NULL"}, Content={entry.Content ?? "NULL"}");
+            else
+                DebugUtility.PrintContext("FS", $"TryGetEntry: Entry is NULL");
+
             return true;
         }
 

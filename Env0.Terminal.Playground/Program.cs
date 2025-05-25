@@ -9,6 +9,7 @@ namespace Env0.Terminal.Playground
         static void Main(string[] args)
         {
             var api = new TerminalEngineAPI();
+            DebugUtility.Enabled = false;
             api.Initialize();
 
             Console.WriteLine("env0.terminal playground (type 'exit' to quit)");
