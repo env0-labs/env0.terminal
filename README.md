@@ -6,7 +6,7 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 
 ---
 
-## 🚩 What is this?
+## 🚩 What is this Project?
 
 **env0.terminal.unity** is the core simulation for narrative, puzzle, or adventure games built on a Linux-style terminal experience.
 
