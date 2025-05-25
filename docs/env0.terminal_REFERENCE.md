@@ -1,9 +1,9 @@
 # 🧼 REFERENCE.md — Canonical Project Source (C# Logic Engine, Milestone 1)
 
-> **Project Status: 2025-05-23**  
-> Milestone 1A & 1B: COMPLETE  
-> All contract behaviors and critical edge cases are implemented and tested.  
-> Hostile/psychotic edge-case tests that are out-of-scope are commented, justified, and do not block milestone status.
+> **Project Status: 2025-05-25**
+> All filesystem loading/conversion and SSH login logic are now robust, milestone-complete, and fully debugged.
+> - All debug output is routed through DebugUtility with context tagging and toggleable visibility.
+> - SSH login phase now supports ‘abort’ to cancel credentials, and cyclic/self-SSH attempts are blocked.
 
 ---
 
@@ -183,6 +183,8 @@ Strictly enforced for all core and feature work:
 - Exiting SSH returns to previous session (SSH stack).
 - If at root, "You are already at the local terminal."
 - No Ctrl+C/manual interrupt.
+- SSH login now supports entering ‘abort’ at any prompt to exit SSH login cleanly, with user feedback.
+- Cyclic SSH and self-SSH attempts are detected and blocked, maintaining session stack integrity and user clarity.
 
 ---
 
@@ -271,6 +273,8 @@ Strictly enforced for all core and feature work:
 - **Debug info** is shown in bright yellow for visibility.
 - **Unsafe by design:** debug commands can break normal flow and are for developer use only.
 - **NOTE:** Debug command logic is specified in the contract, but is **not implemented** as of Milestone 1B.
+- DebugUtility is now used for all debug output during JSON loading, filesystem parsing, and conversion. Console.WriteLine is deprecated.
+- Debug messages are only visible when debug mode is enabled, and include full context tags and trace output.
 
 ---
 

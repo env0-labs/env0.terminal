@@ -1,11 +1,14 @@
+
 # env0.terminal – Canonical Component Map (Source/Config Only)
 
-> **Project Status: 2025-05-23**
+> **Project Status: 2025-05-25**
 >
 > - **Milestone 1A (Terminal Core): COMPLETE**
 > - **Milestone 1B (Network, SSH, Devices, JSON): COMPLETE**
 > - All contract tests pass. Hostile/psychotic edge-case tests are commented and justified; non-contract failures do not block milestone.
 > - All components listed below are implemented unless otherwise noted.
+> - **Filesystem loading, conversion, and debug output are fully routed through DebugUtility (no Console.WriteLine in loader/core logic).**
+> - **SSH login is robust: supports 'abort', blocks cyclic/self-SSH, and preserves session stack integrity.**
 
 ---
 
@@ -14,9 +17,9 @@
 - **Test Philosophy:**  
   All critical, canonical, and plausible hostile edge cases are covered by the contract test suite.  
   *“Psychotic”* edge-case tests—those requiring code injection, abusive input, or extreme user behavior (not covered by contract/narrative requirements)—are:
-    - **Commented out** in the test suite,
-    - **Retained for reference** (never deleted),
-    - **Explicitly annotated** with rationale explaining why they are out-of-scope or unsupported.
+  - **Commented out** in the test suite,
+  - **Retained for reference** (never deleted),
+  - **Explicitly annotated** with rationale explaining why they are out-of-scope or unsupported.
 - **Milestone Completion:**  
   Hostile/psychotic test failures only block a milestone if they expose a contract or canonical behavior failure.  
   Out-of-scope or “not a bug” test failures are preserved but do **not** block milestone status.
@@ -37,15 +40,15 @@
 | Config/Pocos/BootConfig.cs                     | POCO: Structure for BootConfig.json                                | (none)                                  | JsonLoader                                                        |      ✅       |
 | Config/Pocos/Devices.cs                        | POCO: Structure for Devices.json                                   | (none)                                  | JsonLoader, NetworkManager                                        |      ✅       |
 | Config/Pocos/FileEntry.cs                      | POCO: Node for file or directory in FS (name, type, content, etc.) | (none)                                  | Filesystem.cs, FilesystemManager                                  |      ✅       |
-| Config/Pocos/FileEntryConverter.cs             | Handles JSON polymorphism (file vs dir nodes)                      | (none)                                  | JsonLoader, Filesystem.cs                                         |      ✅       |
+| Config/Pocos/FileEntryConverter.cs             | Handles JSON polymorphism (file vs dir nodes)                      | (none)                                  | JsonLoader, Filesystem.cs                                         |      ✅ (All debug output via DebugUtility) |
 | Config/Pocos/Filesystem.cs                     | POCO: Root structure for FS JSON (tree root, props)                | (none)                                  | JsonLoader, FilesystemManager                                     |      ✅       |
 | Config/Pocos/UserConfig.cs                     | POCO: Structure for UserConfig.json                                | (none)                                  | JsonLoader, LoginHandler                                          |      ✅       |
 | Config/AssemblyInfo.cs                         | Standard .NET assembly metadata                                    | (none)                                  | Build/runtime only                                                |      ✅       |
-| Config/JsonLoader.cs                           | Loads, validates, and exposes all JSON config                      | All POCOs, System.IO                    | All managers/handlers needing config, esp. FilesystemManager      |      ✅       |
-| Filesystem/FilesystemManager.cs                | Main interface for virtual FS: navigation, read, errors, etc.      | Filesystem.cs, FileEntry.cs, JsonLoader  | CommandHandler, SSHHandler, TerminalStateManager, LoginHandler   |      ✅       |
-| Login/LoginHandler.cs                          | Handles username assignment (local) and SSH login                  | UserConfig.cs, Devices.cs, NetworkManager| TerminalStateManager, SSHHandler                                 |      ✅       |
+| Config/JsonLoader.cs                           | Loads, validates, and exposes all JSON config                      | All POCOs, System.IO                    | All managers/handlers needing config, esp. FilesystemManager      |      ✅ (DebugUtility, never Console.WriteLine) |
+| Filesystem/FilesystemManager.cs                | Main interface for virtual FS: navigation, read, errors, etc.      | Filesystem.cs, FileEntry.cs, JsonLoader  | CommandHandler, SSHHandler, TerminalStateManager, LoginHandler    |      ✅ (DebugUtility) |
+| Login/LoginHandler.cs                          | Handles username assignment (local) and SSH login                  | UserConfig.cs, Devices.cs, NetworkManager| TerminalStateManager, SSHHandler                                 |      ✅ (SSH abort & cyclic/self-SSH logic) |
 | Login/LoginResultStatus.cs                     | Enum/status for login attempts (success/fail/etc)                  | (none)                                  | LoginHandler                                                      |      ✅       |
-| Login/SSHHandler.cs                            | Manages SSH session stack and SSH-specific login                   | Devices.cs, FilesystemManager            | TerminalStateManager, CommandHandler                             |      ✅       |
+| Login/SSHHandler.cs                            | Manages SSH session stack and SSH-specific login                   | Devices.cs, FilesystemManager            | TerminalStateManager, CommandHandler                             |      ✅ (Abort support, cyclic/self-SSH protection) |
 | Network/NetworkManager.cs                      | Handles device lookups, nmap, ping, interface listing              | Devices.cs                               | CommandHandler, LoginHandler, SSHHandler                         |      ✅       |
 | Terminal/CommandHandler.cs                     | Central command dispatcher; finds/executes ICommand (see below)    | ICommand, receives parsed command from CommandParser | TerminalStateManager, Playground/CLI                 |      ✅       |
 | Terminal/ICommand.cs                           | Common interface for all command modules (see below)               | (none)                                  | CommandHandler, all command classes                               |      ✅       |
@@ -57,7 +60,7 @@
 | Terminal/Commands/ClearCommand.cs              | Implements `clear` (clear terminal output) command                 | SessionState                             | CommandHandler, TerminalStateManager                              |      ✅       |
 | Terminal/Commands/PingCommand.cs               | Implements `ping` (simulate network ping) command                  | NetworkManager, SessionState             | CommandHandler, TerminalStateManager                              |      ✅       |
 | Terminal/Commands/NmapCommand.cs               | Implements `nmap` (scan/list devices on network) command           | NetworkManager, SessionState             | CommandHandler, TerminalStateManager                              |      ✅       |
-| Terminal/Commands/SshCommand.cs                | Implements `ssh` (connect to remote device) command                | NetworkManager, SSHHandler, LoginHandler, SessionState | CommandHandler, TerminalStateManager    |      ✅       |
+| Terminal/Commands/SshCommand.cs                | Implements `ssh` (connect to remote device) command                | NetworkManager, SSHHandler, LoginHandler, SessionState | CommandHandler, TerminalStateManager    |      ✅ (abort/cyclic/self-SSH logic) |
 | Terminal/Commands/ExitCommand.cs               | Implements `exit` (exit SSH or shell) command                      | SSHHandler, SessionState                 | CommandHandler, TerminalStateManager                              |      ✅       |
 | Terminal/Commands/SudoCommand.cs               | Implements `sudo` (Easter egg: always returns "Nice try.") command | SessionState                             | CommandHandler, TerminalStateManager                              |      ✅       |
 | Terminal/Commands/HelpCommand.cs               | Implements `help` (list and describe commands) command             | Command registry, SessionState           | CommandHandler, TerminalStateManager                              |      ✅       |
@@ -180,6 +183,7 @@ Provides all debug/dev-only features, toggles, and info for the logic engine. Co
 - Ensures all debug output is visually distinct (e.g., bright yellow, [DEBUG] tag in returned strings).
 - Allows commands and managers to log debug messages or errors (internal API), but does not process or render them—simply collects and exposes for output.
 - Provides methods for other managers/components to check whether debug mode is currently active.
+- **All loader/conversion debug output is routed via DebugUtility, never Console.WriteLine.**
 
 **NOT Responsible For:**
 - Storing session state (TerminalStateManager does this).
@@ -262,6 +266,7 @@ Defines the public interface for the env0.terminal logic engine, for front-end (
 - Provides a stable entry point for initialization, session reset, and integration.
 - Hides internal implementation details and private state from the front-end.
 
+---
 
 ## TerminalEngineAPI – Public Contract
 
@@ -369,7 +374,6 @@ public class TerminalEngineAPI
 
 **This contract is canonical. Any future fields/methods should be added only as narrative/UI/gameplay needs dictate.**
 
-
 **NOT Responsible For:**
 - Implementing core logic (delegates to underlying managers/handlers).
 - UI, audio, rendering, or direct user I/O.
@@ -383,3 +387,9 @@ public class TerminalEngineAPI
 - REFERENCE.md § Integration, Session State, Input/Output, Playground
 
 ---
+
+## Milestone Completion Notes
+
+- **Filesystem loading, conversion, and debug output are fully standardized via DebugUtility. No Console.WriteLine is present in loader/core logic.**
+- **SSH login is robust: supports 'abort', blocks cyclic/self-SSH, and maintains full session stack integrity.**
+- All logic is milestone-complete, fully aligned with REFERENCE.md and all contracts.
