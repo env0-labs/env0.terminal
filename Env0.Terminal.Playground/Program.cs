@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using Env0.Terminal;
 using Env0.Terminal.API_DTOs;
 
@@ -19,6 +19,7 @@ namespace Env0.Terminal.Playground
 
             while (true)
             {
+                // The outer loop keeps track of session phase (boot, login, terminal)
                 switch (state.Phase)
                 {
                     case TerminalPhase.Booting:
@@ -32,29 +33,33 @@ namespace Env0.Terminal.Playground
                         continue;
 
                     case TerminalPhase.Login:
-                        if (state.IsLoginPrompt)
+                        // Handle either username OR password prompts for local/ssh login
+                        while (state.Phase == TerminalPhase.Login)
                         {
                             if (!string.IsNullOrWhiteSpace(state.Output))
                                 Console.WriteLine(state.Output);
 
-                            Console.Write(state.Prompt ?? "Username: ");
-                            var username = Console.ReadLine();
-                            if (username == null) continue;
-                            state = api.Execute(username);
-                            continue;
+                            if (state.IsLoginPrompt)
+                            {
+                                Console.Write(state.Prompt ?? "Username: ");
+                                var username = Console.ReadLine();
+                                if (username == null) continue;
+                                state = api.Execute(username);
+                            }
+                            else if (state.IsPasswordPrompt)
+                            {
+                                Console.Write(state.Prompt ?? "Password: ");
+                                var password = ReadPassword(); // Hide input
+                                if (password == null) continue;
+                                state = api.Execute(password);
+                            }
+                            else
+                            {
+                                // Defensive: unexpected state, break to outer loop
+                                break;
+                            }
                         }
-                        else if (state.IsPasswordPrompt)
-                        {
-                            if (!string.IsNullOrWhiteSpace(state.Output))
-                                Console.WriteLine(state.Output);
-
-                            Console.Write(state.Prompt ?? "Password: ");
-                            var password = ReadPassword(); // Hide input
-                            if (password == null) continue;
-                            state = api.Execute(password);
-                            continue;
-                        }
-                        break;
+                        continue;
 
                     case TerminalPhase.Terminal:
                     default:
@@ -74,6 +79,10 @@ namespace Env0.Terminal.Playground
 
                             state = api.Execute(input);
 
+                            // Handle if the command puts us back into login phase (e.g., SSH, exit, etc)
+                            if (state.Phase == TerminalPhase.Login)
+                                break;
+
                             if (!string.IsNullOrWhiteSpace(state.Output))
                             {
                                 Console.WriteLine(state.Output);
@@ -86,11 +95,9 @@ namespace Env0.Terminal.Playground
                             if (state.ShowMOTD && !string.IsNullOrWhiteSpace(state.MOTD))
                                 Console.WriteLine($"[MOTD] {state.MOTD}");
                         }
+                        continue;
                 }
-                break;
             }
-
-            Console.WriteLine("Session ended. Bye!");
         }
 
         /// <summary>

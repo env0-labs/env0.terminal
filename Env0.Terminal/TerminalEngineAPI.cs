@@ -11,7 +11,6 @@ namespace Env0.Terminal
 {
     public class TerminalEngineAPI
     {
-        // Core managers and handlers
         private TerminalStateManager _stateManager;
         private SessionState _session;
         private FilesystemManager _filesystemManager;
@@ -21,19 +20,21 @@ namespace Env0.Terminal
         private CommandHandler _commandHandler;
         private LoginHandler _loginHandler;
 
-        // Startup flag
         private bool _initialized = false;
-
-        // Phase state
         private bool _bootShown = false;
 
-        // Login state tracking
+        // SSH login flow tracking
+        private enum LoginMode { None, Local, Ssh }
+        private LoginMode _loginMode = LoginMode.None;
+        private string _pendingSshTarget = null;
+        private DeviceInfo _pendingSshDevice = null;
+        private string _pendingSshUser = null;
+
         private enum LoginStep { None, Username, Password }
         private LoginStep _loginStep = LoginStep.None;
-        private string _capturedUsername;
-        private string _capturedPassword;
+        private string _capturedUsername = null;
+        private string _capturedPassword = null;
 
-        // Terminal phase tracking
         private TerminalPhase _phase = TerminalPhase.Booting;
 
         public void Initialize()
@@ -77,7 +78,12 @@ namespace Env0.Terminal
             _initialized = true;
             _phase = TerminalPhase.Booting;
             _bootShown = false;
+
+            _loginMode = LoginMode.None;
             _loginStep = LoginStep.None;
+            _pendingSshTarget = null;
+            _pendingSshDevice = null;
+            _pendingSshUser = null;
             _capturedUsername = null;
             _capturedPassword = null;
         }
@@ -89,7 +95,6 @@ namespace Env0.Terminal
             switch (_phase)
             {
                 case TerminalPhase.Booting:
-                    // Show boot lines ONCE, then advance immediately to Login phase on any next call
                     if (!_bootShown)
                     {
                         _bootShown = true;
@@ -103,8 +108,9 @@ namespace Env0.Terminal
                             Prompt = null
                         };
                     }
-                    // On *any* input after boot, move to Login phase
+                    // Move to local login on any input after boot
                     _phase = TerminalPhase.Login;
+                    _loginMode = LoginMode.Local;
                     _loginStep = LoginStep.Username;
                     _capturedUsername = null;
                     _capturedPassword = null;
@@ -117,55 +123,48 @@ namespace Env0.Terminal
                     };
 
                 case TerminalPhase.Login:
-                    // Username prompt
-                    if (_loginStep == LoginStep.Username)
+                    // LOCAL LOGIN
+                    if (_loginMode == LoginMode.Local)
                     {
-                        if (string.IsNullOrWhiteSpace(input))
+                        if (_loginStep == LoginStep.Username)
                         {
-                            // FLAVOR: Empty username not allowed!
-                            return new TerminalRenderState
+                            if (string.IsNullOrWhiteSpace(input))
                             {
-                                Phase = TerminalPhase.Login,
-                                IsLoginPrompt = true,
-                                IsPasswordPrompt = false,
-                                Prompt = "Username: ",
-                                Output = "Trying to log in as a ghost? You need a username.\n"
-                            };
+                                return new TerminalRenderState
+                                {
+                                    Phase = TerminalPhase.Login,
+                                    IsLoginPrompt = true,
+                                    IsPasswordPrompt = false,
+                                    Prompt = "Username: ",
+                                    Output = "Trying to log in as a ghost? You need a username.\n"
+                                };
+                            }
+                            else
+                            {
+                                _capturedUsername = input;
+                                _loginStep = LoginStep.Password;
+                                return new TerminalRenderState
+                                {
+                                    Phase = TerminalPhase.Login,
+                                    IsLoginPrompt = false,
+                                    IsPasswordPrompt = true,
+                                    Prompt = "Password: "
+                                };
+                            }
                         }
-                        else
+                        else if (_loginStep == LoginStep.Password)
                         {
-                            // Only set username if it is NOT whitespace
-                            _capturedUsername = input;
-                            _loginStep = LoginStep.Password;
-                            return new TerminalRenderState
-                            {
-                                Phase = TerminalPhase.Login,
-                                IsLoginPrompt = false,
-                                IsPasswordPrompt = true,
-                                Prompt = "Password: "
-                            };
+                            _capturedPassword = input ?? "";
+                            _loginHandler.SetUsername(_session, _capturedUsername);
+                            _loginHandler.SetPassword(_session, _capturedPassword);
+                            _phase = TerminalPhase.Terminal;
+                            _loginMode = LoginMode.None;
+                            string warning = string.IsNullOrEmpty(_capturedPassword)
+                                ? "no password? well you like to live dangerously... I'll allow it\n"
+                                : "";
+                            return BuildRenderState($"{warning}Login complete!\nType read tutorial.txt for instructions\n");
                         }
-                    }
-
-                    // Password prompt
-                    else if (_loginStep == LoginStep.Password && string.IsNullOrEmpty(_capturedPassword))
-                    {
-                        // Accept even blank input!
-                        _capturedPassword = input ?? "";
-                        _loginHandler.SetUsername(_session, _capturedUsername);
-                        _loginHandler.SetPassword(_session, _capturedPassword);
-                        _phase = TerminalPhase.Terminal;
-
-                        string warning = string.IsNullOrEmpty(_capturedPassword)
-                            ? "no password? well you like to live dangerously... I'll allow it\n"
-                            : "";
-
-                        return BuildRenderState($"{warning}Login complete!\n");
-                    }
-
-                    // Fallback to username prompt (should not be hit anymore)
-                    else
-                    {
+                        // Reset to username prompt on any weird state
                         _loginStep = LoginStep.Username;
                         _capturedUsername = null;
                         _capturedPassword = null;
@@ -178,11 +177,198 @@ namespace Env0.Terminal
                         };
                     }
 
+                    // SSH LOGIN
+                    if (_loginMode == LoginMode.Ssh)
+                    {
+                        // Username first (if not provided)
+                        if (_loginStep == LoginStep.Username)
+                        {
+                            if (string.IsNullOrWhiteSpace(input))
+                            {
+                                return new TerminalRenderState
+                                {
+                                    Phase = TerminalPhase.Login,
+                                    IsLoginPrompt = true,
+                                    IsPasswordPrompt = false,
+                                    Prompt = "Username: ",
+                                    Output = "Username required for SSH login.\n"
+                                };
+                            }
+                            _pendingSshUser = input.Trim();
+                            _loginStep = LoginStep.Password;
+                            return new TerminalRenderState
+                            {
+                                Phase = TerminalPhase.Login,
+                                IsLoginPrompt = false,
+                                IsPasswordPrompt = true,
+                                Prompt = "Password: "
+                            };
+                        }
+                        // Password next
+                        if (_loginStep == LoginStep.Password)
+                        {
+                            var user = _pendingSshUser;
+                            var pass = input ?? "";
+
+                            // Validate credentials
+                            var expectedUser = _pendingSshDevice.Username;
+                            var expectedPass = _pendingSshDevice.Password;
+
+                            if (!string.Equals(user, expectedUser))
+                            {
+                                // Retry username
+                                _loginStep = LoginStep.Username;
+                                _pendingSshUser = null;
+                                return new TerminalRenderState
+                                {
+                                    Phase = TerminalPhase.Login,
+                                    IsLoginPrompt = true,
+                                    IsPasswordPrompt = false,
+                                    Prompt = "Username: ",
+                                    Output = "Login failed\n"
+                                };
+                            }
+                            if (pass != expectedPass)
+                            {
+                                // Retry password (do NOT say why failed)
+                                return new TerminalRenderState
+                                {
+                                    Phase = TerminalPhase.Login,
+                                    IsLoginPrompt = false,
+                                    IsPasswordPrompt = true,
+                                    Prompt = "Password: ",
+                                    Output = "Login failed\n"
+                                };
+                            }
+
+                            // Success: push SSH context, switch session, drop to terminal, show MOTD/banner
+                            _session.SshStack.Push(new SshSessionContext(
+                                _session.Username,
+                                _session.Hostname,
+                                _session.CurrentWorkingDirectory,
+                                _session.FilesystemManager,
+                                _session.NetworkManager
+                            ));
+                            _session.Username = user;
+                            _session.Hostname = _pendingSshDevice.Hostname;
+                            _session.CurrentWorkingDirectory = "/";
+                            _session.DeviceInfo = _pendingSshDevice;
+                            // Load correct FS for this device
+                            _session.FilesystemManager = _sshHandler.LoadFilesystemForDevice(_pendingSshDevice);
+                            _session.NetworkManager.CurrentDevice = _pendingSshDevice;
+
+                            var motd = !string.IsNullOrWhiteSpace(_pendingSshDevice.Motd)
+                                ? _pendingSshDevice.Motd
+                                : $"Connected to {_pendingSshDevice.Hostname} ({_pendingSshDevice.Ip})";
+
+                            _phase = TerminalPhase.Terminal;
+                            _loginMode = LoginMode.None;
+                            _loginStep = LoginStep.None;
+                            _pendingSshTarget = null;
+                            _pendingSshDevice = null;
+                            _pendingSshUser = null;
+                            return BuildRenderState($"{motd}\n");
+                        }
+                    }
+
+                    // Should never hit this, but reset state if it does
+                    _loginMode = LoginMode.None;
+                    _loginStep = LoginStep.None;
+                    _pendingSshTarget = null;
+                    _pendingSshDevice = null;
+                    _pendingSshUser = null;
+                    return new TerminalRenderState
+                    {
+                        Phase = TerminalPhase.Login,
+                        IsLoginPrompt = true,
+                        IsPasswordPrompt = false,
+                        Prompt = "Username: "
+                    };
+
                 case TerminalPhase.Terminal:
                 default:
                     var parsed = _commandParser.Parse(input);
                     if (parsed == null)
                         return BuildRenderState("", isError: false);
+
+                    // Special-case SSH: API takes over phase/SSH handling
+                    if (parsed.CommandName == "ssh")
+                    {
+                        if (parsed.Arguments.Length == 0 || string.IsNullOrWhiteSpace(parsed.Arguments[0]))
+                            return BuildRenderState("bash: ssh: Missing host\n\n", true);
+
+                        // Parse user@host
+                        string user = null, host = null;
+                        var target = parsed.Arguments[0].Trim();
+                        if (target.Contains("@"))
+                        {
+                            var split = target.Split('@');
+                            user = split[0];
+                            host = split[1];
+                        }
+                        else
+                        {
+                            host = target;
+                        }
+
+                        // Lookup device
+                        var device = _networkManager.FindDevice(host);
+                        if (device == null || device.Ports == null || !device.Ports.Contains("22"))
+                            return BuildRenderState($"ssh: connect to host {host} port 22: Connection refused\n", true);
+
+                        _pendingSshTarget = host;
+                        _pendingSshDevice = device;
+                        _pendingSshUser = user;
+
+                        _phase = TerminalPhase.Login;
+                        _loginMode = LoginMode.Ssh;
+
+                        if (string.IsNullOrEmpty(user))
+                        {
+                            _loginStep = LoginStep.Username;
+                            return new TerminalRenderState
+                            {
+                                Phase = TerminalPhase.Login,
+                                IsLoginPrompt = true,
+                                IsPasswordPrompt = false,
+                                Prompt = "Username: "
+                            };
+                        }
+                        else
+                        {
+                            _loginStep = LoginStep.Password;
+                            return new TerminalRenderState
+                            {
+                                Phase = TerminalPhase.Login,
+                                IsLoginPrompt = false,
+                                IsPasswordPrompt = true,
+                                Prompt = "Password: "
+                            };
+                        }
+                    }
+                    else if (parsed.CommandName == "exit")
+                    {
+                        // Handle SSH stack pop if possible
+                        if (_session.SshStack.Count > 0)
+                        {
+                            var prev = _session.SshStack.Pop();
+                            _session.Username = prev.Username;
+                            _session.Hostname = prev.Hostname;
+                            _session.CurrentWorkingDirectory = prev.CurrentWorkingDirectory;
+                            _session.FilesystemManager = prev.FilesystemManager;
+                            _session.NetworkManager = prev.NetworkManager;
+                            _session.DeviceInfo = _session.NetworkManager.CurrentDevice;
+
+                            var banner = $"Connection to {_session.Hostname} closed.\n";
+                            // Do not drop out of Terminal phase unless truly back to base session
+                            return BuildRenderState(banner, false);
+                        }
+                        else
+                        {
+                            // Already at local terminal
+                            return BuildRenderState("You are already at the local terminal.\n", false);
+                        }
+                    }
 
                     var result = _commandHandler.Execute(input, _session);
                     return BuildRenderState(result.Output, result.IsError);
@@ -212,7 +398,7 @@ namespace Env0.Terminal
                     : null,
 
                 IsLoginPrompt = _phase == TerminalPhase.Login && _loginStep == LoginStep.Username,
-                IsPasswordPrompt = _phase == TerminalPhase.Login && _loginStep == LoginStep.Password && string.IsNullOrEmpty(_capturedPassword),
+                IsPasswordPrompt = _phase == TerminalPhase.Login && _loginStep == LoginStep.Password,
                 Prompt = _phase == TerminalPhase.Terminal
                     ? $"{_session.Username}@{_session.Hostname}:{_session.CurrentWorkingDirectory}$ "
                     : (_phase == TerminalPhase.Login && _loginStep == LoginStep.Username ? "Username: "
