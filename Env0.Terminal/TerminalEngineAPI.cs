@@ -24,6 +24,9 @@ namespace Env0.Terminal
         // Startup flag
         private bool _initialized = false;
 
+        // Phase state
+        private bool _bootShown = false;
+
         // Login state tracking
         private enum LoginStep { None, Username, Password }
         private LoginStep _loginStep = LoginStep.None;
@@ -73,6 +76,7 @@ namespace Env0.Terminal
 
             _initialized = true;
             _phase = TerminalPhase.Booting;
+            _bootShown = false;
             _loginStep = LoginStep.None;
             _capturedUsername = null;
             _capturedPassword = null;
@@ -85,37 +89,52 @@ namespace Env0.Terminal
             switch (_phase)
             {
                 case TerminalPhase.Booting:
-                    // Show boot sequence, then transition to login (username prompt)
+                    // Show boot lines ONCE, then advance immediately to Login phase on any next call
+                    if (!_bootShown)
+                    {
+                        _bootShown = true;
+                        return new TerminalRenderState
+                        {
+                            Phase = TerminalPhase.Booting,
+                            BootSequenceLines = JsonLoader.BootConfig?.BootText ?? new List<string>(),
+                            Output = string.Join("\n", JsonLoader.BootConfig?.BootText ?? new List<string>()) + "\n",
+                            IsLoginPrompt = false,
+                            IsPasswordPrompt = false,
+                            Prompt = null
+                        };
+                    }
+                    // On *any* input after boot, move to Login phase
                     _phase = TerminalPhase.Login;
                     _loginStep = LoginStep.Username;
+                    _capturedUsername = null;
+                    _capturedPassword = null;
                     return new TerminalRenderState
                     {
-                        Phase = TerminalPhase.Booting,
-                        BootSequenceLines = JsonLoader.BootConfig?.BootText ?? new List<string>(),
-                        Output = string.Join("\n", JsonLoader.BootConfig?.BootText ?? new List<string>()) + "\n",
-                        IsLoginPrompt = false,
+                        Phase = TerminalPhase.Login,
+                        IsLoginPrompt = true,
                         IsPasswordPrompt = false,
-                        Prompt = null
+                        Prompt = "Username: "
                     };
 
                 case TerminalPhase.Login:
                     // Username prompt
-                    if (_loginStep == LoginStep.Username && string.IsNullOrEmpty(_capturedUsername))
+                    if (_loginStep == LoginStep.Username)
                     {
-                        if (string.IsNullOrEmpty(input))
+                        if (string.IsNullOrWhiteSpace(input))
                         {
-                            // Show username prompt, don't capture input or advance
+                            // FLAVOR: Empty username not allowed!
                             return new TerminalRenderState
                             {
                                 Phase = TerminalPhase.Login,
                                 IsLoginPrompt = true,
                                 IsPasswordPrompt = false,
-                                Prompt = "Username: "
+                                Prompt = "Username: ",
+                                Output = "Trying to log in as a ghost? You need a username.\n"
                             };
                         }
                         else
                         {
-                            // Got username input, advance to password prompt
+                            // Only set username if it is NOT whitespace
                             _capturedUsername = input;
                             _loginStep = LoginStep.Password;
                             return new TerminalRenderState
@@ -127,6 +146,7 @@ namespace Env0.Terminal
                             };
                         }
                     }
+
                     // Password prompt
                     else if (_loginStep == LoginStep.Password && string.IsNullOrEmpty(_capturedPassword))
                     {
@@ -143,7 +163,6 @@ namespace Env0.Terminal
                         return BuildRenderState($"{warning}Login complete!\n");
                     }
 
-
                     // Fallback to username prompt (should not be hit anymore)
                     else
                     {
@@ -158,7 +177,6 @@ namespace Env0.Terminal
                             Prompt = "Username: "
                         };
                     }
-
 
                 case TerminalPhase.Terminal:
                 default:
@@ -193,12 +211,12 @@ namespace Env0.Terminal
                     ? JsonLoader.BootConfig?.BootText ?? new List<string>()
                     : null,
 
-                IsLoginPrompt = _phase == TerminalPhase.Login && _loginStep == LoginStep.Username && string.IsNullOrEmpty(_capturedUsername),
+                IsLoginPrompt = _phase == TerminalPhase.Login && _loginStep == LoginStep.Username,
                 IsPasswordPrompt = _phase == TerminalPhase.Login && _loginStep == LoginStep.Password && string.IsNullOrEmpty(_capturedPassword),
                 Prompt = _phase == TerminalPhase.Terminal
                     ? $"{_session.Username}@{_session.Hostname}:{_session.CurrentWorkingDirectory}$ "
-                    : (_phase == TerminalPhase.Login && _loginStep == LoginStep.Username && string.IsNullOrEmpty(_capturedUsername) ? "Username: "
-                      : (_phase == TerminalPhase.Login && _loginStep == LoginStep.Password && string.IsNullOrEmpty(_capturedPassword) ? "Password: " : "")),
+                    : (_phase == TerminalPhase.Login && _loginStep == LoginStep.Username ? "Username: "
+                      : (_phase == TerminalPhase.Login && _loginStep == LoginStep.Password ? "Password: " : "")),
 
                 Output = output,
                 CurrentDirectory = _session.CurrentWorkingDirectory,

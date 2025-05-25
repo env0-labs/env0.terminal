@@ -14,26 +14,29 @@ namespace Env0.Terminal.Playground
             Console.WriteLine("env0.terminal playground (type 'exit' to quit)");
             Console.WriteLine("----------------------------------------------");
 
-            TerminalRenderState state = api.Execute(""); // Should trigger boot phase
+            // Start by requesting the first render state (boot phase)
+            TerminalRenderState state = api.Execute(""); // First call
 
             while (true)
             {
                 switch (state.Phase)
                 {
                     case TerminalPhase.Booting:
-                        // Print boot lines and advance phase
                         if (state.BootSequenceLines != null)
                         {
                             foreach (var line in state.BootSequenceLines)
                                 Console.WriteLine(line);
                         }
-                        // Move to login phase (call Execute again with no input)
-                        state = api.Execute("");
+                        // Immediately move to login phase—API manages phase switch
+                        state = api.Execute(""); // This is expected by your API's design!
                         continue;
 
                     case TerminalPhase.Login:
                         if (state.IsLoginPrompt)
                         {
+                            if (!string.IsNullOrWhiteSpace(state.Output))
+                                Console.WriteLine(state.Output);
+
                             Console.Write(state.Prompt ?? "Username: ");
                             var username = Console.ReadLine();
                             if (username == null) continue;
@@ -42,8 +45,11 @@ namespace Env0.Terminal.Playground
                         }
                         else if (state.IsPasswordPrompt)
                         {
+                            if (!string.IsNullOrWhiteSpace(state.Output))
+                                Console.WriteLine(state.Output);
+
                             Console.Write(state.Prompt ?? "Password: ");
-                            var password = ReadPassword(); // Now masks password entry
+                            var password = ReadPassword(); // Hide input
                             if (password == null) continue;
                             state = api.Execute(password);
                             continue;
@@ -52,29 +58,36 @@ namespace Env0.Terminal.Playground
 
                     case TerminalPhase.Terminal:
                     default:
-                        // ---- FIX: Show any output that was returned when entering terminal phase (e.g. login flavor)
+                        // Only print output if present
                         if (!string.IsNullOrWhiteSpace(state.Output))
+                        {
                             Console.WriteLine(state.Output);
+                            state.Output = null; // Prevent double print
+                        }
 
-                        Console.Write(state.Prompt);
-                        var input = Console.ReadLine();
-                        if (input == null) continue;
-                        if (input.Trim().ToLower() == "exit") break;
+                        while (true)
+                        {
+                            Console.Write(state.Prompt);
+                            var input = Console.ReadLine();
+                            if (input == null) continue;
+                            if (input.Trim().ToLower() == "exit") return;
 
-                        state = api.Execute(input);
+                            state = api.Execute(input);
 
-                        if (!string.IsNullOrWhiteSpace(state.Output))
-                            Console.WriteLine(state.Output);
+                            if (!string.IsNullOrWhiteSpace(state.Output))
+                            {
+                                Console.WriteLine(state.Output);
+                                state.Output = null;
+                            }
 
-                        if (state.IsError && !string.IsNullOrWhiteSpace(state.ErrorMessage))
-                            Console.WriteLine($"[ERROR] {state.ErrorMessage}");
+                            if (state.IsError && !string.IsNullOrWhiteSpace(state.ErrorMessage))
+                                Console.WriteLine($"[ERROR] {state.ErrorMessage}");
 
-                        if (state.ShowMOTD && !string.IsNullOrWhiteSpace(state.MOTD))
-                            Console.WriteLine($"[MOTD] {state.MOTD}");
-
-                        continue;
+                            if (state.ShowMOTD && !string.IsNullOrWhiteSpace(state.MOTD))
+                                Console.WriteLine($"[MOTD] {state.MOTD}");
+                        }
                 }
-                break; // End loop if terminal phase exits
+                break;
             }
 
             Console.WriteLine("Session ended. Bye!");
@@ -87,11 +100,9 @@ namespace Env0.Terminal.Playground
         {
             var password = string.Empty;
             ConsoleKeyInfo key;
-
             while (true)
             {
                 key = Console.ReadKey(true);
-
                 if (key.Key == ConsoleKey.Enter)
                     break;
                 if (key.Key == ConsoleKey.Backspace)
@@ -100,7 +111,6 @@ namespace Env0.Terminal.Playground
                         password = password.Substring(0, password.Length - 1);
                     continue;
                 }
-                // Ignore modifier/non-printable keys
                 if (char.IsControl(key.KeyChar))
                     continue;
                 password += key.KeyChar;
