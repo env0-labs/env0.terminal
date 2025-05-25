@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using Env0.Terminal;
 using Env0.Terminal.API_DTOs;
 
@@ -19,7 +19,6 @@ namespace Env0.Terminal.Playground
 
             while (true)
             {
-                // The outer loop keeps track of session phase (boot, login, terminal)
                 switch (state.Phase)
                 {
                     case TerminalPhase.Booting:
@@ -28,12 +27,11 @@ namespace Env0.Terminal.Playground
                             foreach (var line in state.BootSequenceLines)
                                 Console.WriteLine(line);
                         }
-                        // Immediately move to login phase—API manages phase switch
-                        state = api.Execute(""); // This is expected by your API's design!
+                        // Move to login phase
+                        state = api.Execute("");
                         continue;
 
                     case TerminalPhase.Login:
-                        // Handle either username OR password prompts for local/ssh login
                         while (state.Phase == TerminalPhase.Login)
                         {
                             if (!string.IsNullOrWhiteSpace(state.Output))
@@ -49,25 +47,23 @@ namespace Env0.Terminal.Playground
                             else if (state.IsPasswordPrompt)
                             {
                                 Console.Write(state.Prompt ?? "Password: ");
-                                var password = ReadPassword(); // Hide input
+                                var password = ReadPassword();
                                 if (password == null) continue;
                                 state = api.Execute(password);
                             }
                             else
                             {
-                                // Defensive: unexpected state, break to outer loop
-                                break;
+                                break; // Unexpected state, return to outer loop
                             }
                         }
                         continue;
 
                     case TerminalPhase.Terminal:
                     default:
-                        // Only print output if present
                         if (!string.IsNullOrWhiteSpace(state.Output))
                         {
                             Console.WriteLine(state.Output);
-                            state.Output = null; // Prevent double print
+                            state.Output = null;
                         }
 
                         while (true)
@@ -75,11 +71,44 @@ namespace Env0.Terminal.Playground
                             Console.Write(state.Prompt);
                             var input = Console.ReadLine();
                             if (input == null) continue;
-                            if (input.Trim().ToLower() == "exit") return;
+
+                            // === Improved exit handling with random, stylized confirmation ===
+                            if (input.Trim().ToLower() == "exit")
+                            {
+                                state = api.Execute("exit");
+                                if (state.SessionStackDepth == 0 && state.Phase == TerminalPhase.Terminal)
+                                {
+                                    var confirmations = new[]
+                                    {
+                                        "Are you sure you want to exit? (y/n): ",
+                                        "Exit? The abyss stares back. (y/n): ",
+                                        "Last chance: close all sessions? (y/n): ",
+                                        "You do realize this will end your only connection to this universe, right? (y/n): ",
+                                        "Confirm session termination [Y/n]? "
+                                    };
+                                    var rand = new Random();
+                                    Console.Write(confirmations[rand.Next(confirmations.Length)]);
+                                    var answer = Console.ReadLine();
+                                    if (!string.IsNullOrEmpty(answer) && answer.Trim().ToLower() == "y")
+                                    {
+                                        Console.WriteLine("Session ended. Bye!");
+                                        return;
+                                    }
+                                    // Otherwise, stay in Playground—re-display prompt
+                                    continue;
+                                }
+                                // Otherwise, show output (like "Connection to ... closed.") and continue at the new prompt/session
+                                if (!string.IsNullOrWhiteSpace(state.Output))
+                                {
+                                    Console.WriteLine(state.Output);
+                                    state.Output = null;
+                                }
+                                continue;
+                            }
 
                             state = api.Execute(input);
 
-                            // Handle if the command puts us back into login phase (e.g., SSH, exit, etc)
+                            // If command moves us into login phase (e.g., SSH), break to outer loop
                             if (state.Phase == TerminalPhase.Login)
                                 break;
 
