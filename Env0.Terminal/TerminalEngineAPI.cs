@@ -191,8 +191,29 @@ namespace Env0.Terminal
                                     IsLoginPrompt = true,
                                     IsPasswordPrompt = false,
                                     Prompt = "Username: ",
-                                    Output = "Username required for SSH login.\n"
+                                    Output = "Username required for SSH login.\n(To abort SSH login, type 'abort' as the username.)\n"
                                 };
+                            }
+                            if (input.Trim().ToLower() == "abort")
+                            {
+                                // pop to previous session
+                                if (_session.SshStack.Count > 0)
+                                {
+                                    var prev = _session.SshStack.Pop();
+                                    _session.Username = prev.Username;
+                                    _session.Hostname = prev.Hostname;
+                                    _session.CurrentWorkingDirectory = prev.CurrentWorkingDirectory;
+                                    _session.FilesystemManager = prev.FilesystemManager;
+                                    _session.NetworkManager = prev.NetworkManager;
+                                    _session.DeviceInfo = _session.NetworkManager.CurrentDevice;
+                                }
+                                _phase = TerminalPhase.Terminal;
+                                _loginMode = LoginMode.None;
+                                _loginStep = LoginStep.None;
+                                _pendingSshTarget = null;
+                                _pendingSshDevice = null;
+                                _pendingSshUser = null;
+                                return BuildRenderState("SSH login aborted.\n");
                             }
                             _pendingSshUser = input.Trim();
                             _loginStep = LoginStep.Password;
@@ -201,12 +222,35 @@ namespace Env0.Terminal
                                 Phase = TerminalPhase.Login,
                                 IsLoginPrompt = false,
                                 IsPasswordPrompt = true,
-                                Prompt = "Password: "
+                                Prompt = "Password: ",
+                                Output = "(To abort SSH login, type 'abort' as the password.)\n"
                             };
                         }
                         // Password next
                         if (_loginStep == LoginStep.Password)
                         {
+                            if ((input ?? "").Trim().ToLower() == "abort")
+                            {
+                                // pop to previous session
+                                if (_session.SshStack.Count > 0)
+                                {
+                                    var prev = _session.SshStack.Pop();
+                                    _session.Username = prev.Username;
+                                    _session.Hostname = prev.Hostname;
+                                    _session.CurrentWorkingDirectory = prev.CurrentWorkingDirectory;
+                                    _session.FilesystemManager = prev.FilesystemManager;
+                                    _session.NetworkManager = prev.NetworkManager;
+                                    _session.DeviceInfo = _session.NetworkManager.CurrentDevice;
+                                }
+                                _phase = TerminalPhase.Terminal;
+                                _loginMode = LoginMode.None;
+                                _loginStep = LoginStep.None;
+                                _pendingSshTarget = null;
+                                _pendingSshDevice = null;
+                                _pendingSshUser = null;
+                                return BuildRenderState("SSH login aborted.\n");
+                            }
+
                             var user = _pendingSshUser;
                             var pass = input ?? "";
 
@@ -225,7 +269,7 @@ namespace Env0.Terminal
                                     IsLoginPrompt = true,
                                     IsPasswordPrompt = false,
                                     Prompt = "Username: ",
-                                    Output = "Login failed\n"
+                                    Output = "Login failed\n(To abort SSH login, type 'abort' as the username.)\n"
                                 };
                             }
                             if (pass != expectedPass)
@@ -237,7 +281,7 @@ namespace Env0.Terminal
                                     IsLoginPrompt = false,
                                     IsPasswordPrompt = true,
                                     Prompt = "Password: ",
-                                    Output = "Login failed\n"
+                                    Output = "Login failed\n(To abort SSH login, type 'abort' as the password.)\n"
                                 };
                             }
 
@@ -311,12 +355,12 @@ namespace Env0.Terminal
                             host = target;
                         }
 
-                    // Lookup device
+                        // Lookup device
                         var device = _networkManager.FindDevice(host);
                         if (device == null || device.Ports == null || !device.Ports.Contains("22"))
                             return BuildRenderState($"ssh: connect to host {host} port 22: Connection refused\n", true);
 
-                    // Prevent SSH-ing into the current device
+                        // Prevent SSH-ing into the current device
                         if (device.Ip == _session.DeviceInfo.Ip)
                         {
                             return BuildRenderState(
@@ -325,6 +369,19 @@ namespace Env0.Terminal
                             );
                         }
 
+                        // Prevent cyclic SSH sessions (already in stack)
+                        foreach (var ctx in _session.SshStack)
+                        {
+                            if (ctx.Hostname == device.Hostname && ctx.Username == device.Username)
+                            {
+                                return BuildRenderState(
+                                    $"ssh: cyclic login detected — already connected to {device.Hostname} as {device.Username}\n",
+                                    isError: true
+                                );
+                            }
+                        }
+
+                        // -- SSH LOGIN FLOW --
                         _pendingSshTarget = host;
                         _pendingSshDevice = device;
                         _pendingSshUser = user;
@@ -340,7 +397,8 @@ namespace Env0.Terminal
                                 Phase = TerminalPhase.Login,
                                 IsLoginPrompt = true,
                                 IsPasswordPrompt = false,
-                                Prompt = "Username: "
+                                Prompt = "Username: ",
+                                Output = "(To abort SSH login, type 'abort' as the username.)\n"
                             };
                         }
                         else
@@ -351,7 +409,8 @@ namespace Env0.Terminal
                                 Phase = TerminalPhase.Login,
                                 IsLoginPrompt = false,
                                 IsPasswordPrompt = true,
-                                Prompt = "Password: "
+                                Prompt = "Password: ",
+                                Output = "(To abort SSH login, type 'abort' as the password.)\n"
                             };
                         }
                     }
@@ -424,7 +483,8 @@ namespace Env0.Terminal
                 ShowMOTD = false,
                 MOTD = _session.DeviceInfo?.Motd,
                 DebugMode = _session.DebugMode,
-                DebugInfo = null
+                DebugInfo = null,
+                DeviceInfo = _session.DeviceInfo
             };
         }
 

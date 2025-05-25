@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Env0.Terminal.Config.Pocos;
+
 
 namespace Env0.Terminal.API_DTOs
 {
@@ -36,5 +38,9 @@ namespace Env0.Terminal.API_DTOs
         // Debug/dev mode info
         public bool DebugMode { get; set; }
         public DebugInfo DebugInfo { get; set; }
+        
+        // Expose Device Details
+        public DeviceInfo DeviceInfo { get; set; }
+
     }
 }
