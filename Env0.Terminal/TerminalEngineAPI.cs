@@ -311,10 +311,19 @@ namespace Env0.Terminal
                             host = target;
                         }
 
-                        // Lookup device
+                    // Lookup device
                         var device = _networkManager.FindDevice(host);
                         if (device == null || device.Ports == null || !device.Ports.Contains("22"))
                             return BuildRenderState($"ssh: connect to host {host} port 22: Connection refused\n", true);
+
+                    // Prevent SSH-ing into the current device
+                        if (device.Ip == _session.DeviceInfo.Ip)
+                        {
+                            return BuildRenderState(
+                                $"ssh: you are already on {device.Hostname} ({device.Ip})\n",
+                                isError: true
+                            );
+                        }
 
                         _pendingSshTarget = host;
                         _pendingSshDevice = device;
