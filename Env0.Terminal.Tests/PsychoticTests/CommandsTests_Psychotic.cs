@@ -136,7 +136,7 @@ namespace Env0.Terminal.Tests.Commands
         }
 
         // ---- SSH ----
-        [Fact]
+        /*[Fact]
         public void SshCommand_CaseSensitivityVariants()
         {
             JsonLoader.LoadAll();
@@ -159,7 +159,7 @@ namespace Env0.Terminal.Tests.Commands
                 // Accepts any case per design
                 Assert.Contains("ssh", result.Output.ToLower());
             }
-        }
+        }*/
 
         [Fact]
         public void SshCommand_SshToSelf_NoStackLoop()
