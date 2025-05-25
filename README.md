@@ -10,95 +10,173 @@ All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
 
 **env0.terminal.unity** is the core simulation for narrative, puzzle, or adventure games built on a Linux-style terminal experience.
 
-- Implements authentic terminal navigation, strict file and network access, and a robust, case-insensitive command shell.
-- All world data (filesystems, devices, boot sequence, users) is defined via JSON.
-- Designed for integration into any front end via DLL—Unity, console, or other.
+- Implements strict Linux-style terminal navigation, file access, and SSH-based network traversal.
+- All world data (filesystems, devices, boot sequences, users) is defined via JSON and fully session-driven.
+- Built to be consumed as a DLL—Unity is one possible host, but the logic is fully standalone.
+- **Note:** As of Milestone 1, all narrative and AAI (Artificial Artificial Intelligence) features are developed in a separate project. This repository contains only the terminal core logic.
+
+---
+
+## ✅ Current Status
+
+- All converters are unified under a single canonical FileEntry model.
+- The filesystem tree is fully parent-linked and supports nested navigation with proper error recovery.
+- SSH and command execution are stable across recursive and multi-hop sessions.
+- Full test coverage exists across standard, hostile, and psychotic cases. Out-of-scope or fragile tests are preserved in the codebase as comments with explanations.
+- Debug output exists throughout but is now cleanly commented and tagged for future toggling. Debug mode is stubbed and will be implemented in a later milestone.
+- Narrative/AI features (AAI) are now split out of this codebase.
+- **TerminalEngineAPI** (unified logic interface) is the next planned milestone.
+
+This is a known-good checkpoint.
 
 ---
 
 ## 🛠️ Project Structure
 
 - /
-    - docs/
-        - env0.terminal.unity_Overview.md
-        - env0.terminal.unity_Q&A.txt
-        - env0.terminal.unity_REFERENCE.md
-        - env0.terminal.unity_tasklist.md
-    - Env0.Terminal/
-        - Config/
-            - Jsons/
-                - BootConfig.json
-            - Pocos/
-                - BootConfig.cs
-            - JsonLoader.cs
-            - AssemblyInfo.cs
-        - Filesystem/
-            - FilesystemManager.cs
-        - Terminal/
-            - CommandParser.cs
-            - StateManager.cs
-        - Class1.cs
-        - Env0.Terminal.csproj
-        - bin/...
-        - obj/...
-    - Env0.Terminal.Playground/
-        - Env0.Terminal.Playground.csproj
-        - Program.cs
-        - bin/...
-        - obj/...
-    - Env0.Terminal.Tests/
-        - CommandParserTests.cs
-        - FilesystemManagerHostileUserTests.cs
-        - FilesystemManagerTests.cs
-        - JsonLoaderTests.cs
-        - StateManagerTests.cs
-        - Env0.Terminal.Tests.csproj
-        - bin/...
-        - obj/...
-    - .gitignore
-    - Env0.Terminal.sln
-    - env0.terminal.unity.code-workspace
+  - .idea/
+  - docs/
+    - env0.terminal_Contracts.md
+    - env0.terminal_Milestones.md
+    - env0.terminal_Overview.md
+    - env0.terminal_Q&A.txt
+    - env0.terminal_REFERENCE.md
+    - env0.terminal_Test.Suite.md
+    - logins.md
+    - archive/
+      - env0.terminal_tasklist.md
+  - Env0.Terminal/
+    - Env0.Terminal.csproj
+    - Config/
+      - AssemblyInfo.cs
+      - JsonLoader.cs
+      - Jsons/
+        - BootConfig.json
+        - Devices.json
+        - UserConfig.json
+        - JsonFilesystems/
+          - Filesystem_1.json to Filesystem_11.json
+      - Pocos/
+        - BootConfig.cs
+        - Devices.cs
+        - FileEntry.cs
+        - FileEntryConverter.cs
+        - Filesystem.cs
+        - UserConfig.cs
+    - Filesystem/
+      - FileEntryToFileSystemEntryConverter.cs
+      - FilesystemManager.cs
+    - Login/
+      - LoginHandler.cs
+      - LoginResultStatus.cs
+      - SSHHandler.cs
+    - Network/
+      - NetworkManager.cs
+    - Terminal/
+      - CommandHandler.cs
+      - CommandParser.cs
+      - CommandResult.cs
+      - ICommand.cs
+      - SessionState.cs
+      - TerminalStateManager.cs
+      - Commands/
+        - CatCommand.cs
+        - CdCommand.cs
+        - Clear.cs
+        - EchoCommand.cs
+        - ExitCommand.cs
+        - HelpCommand.cs
+        - IfconfigCommand.cs
+        - LsCommand.cs
+        - NmapCommand.cs
+        - PingCommand.cs
+        - ReadCommand.cs
+        - SshCommand.cs
+        - SudoCommand.cs
+  - Env0.Terminal.Playground/
+    - Env0.Terminal.Playground.csproj
+    - Program.cs
+  - Env0.Terminal.Tests/
+    - Env0.Terminal.Tests.csproj
+    - UnitTest1.cs
+    - StandardTests/
+      - CommandParserTests.cs
+      - CommandSystemTests.cs
+      - FilesystemManagerTests.cs
+      - JsonLoaderTests.cs
+      - StateManagerTests.cs
+      - CommandsTests/
+        - CatCommandsTests.cs
+        - CdCommandTests.cs
+        - EchoCommandTests.cs
+        - ExitCommandTests.cs
+        - HelpCommandTests.cs
+        - IfconfigCommandTests.cs
+        - LsCommandTests.cs
+        - NmapCommandTests.cs
+        - PingCommandTests.cs
+        - ReadCommandTests.cs
+        - SshCommandTests.cs
+        - SudoCommandTests.cs
+    - PsychoticTests/
+      - CommandParser_PsychoticBrody.cs
+      - CommandsTests_Psychotic.cs
+      - FilesystemManager_PsychoticBrody.cs
+      - JsonLoader_PsychoticBrody.cs
+      - StateManager_PsychoticBrody.cs
+    - FilesystemManagerHostileUserTests.cs
+  - .gitignore
+  - Env0.Terminal.sln
+  - env0.terminal.unity.code-workspace
+  - README.md
 
 ---
 
 ## 📚 Core Principles
 
-- **Pure C# logic.** No UI, no direct Unity dependencies—strict separation of engine and presentation.
-- **JSON-driven.** All world state, devices, users, filesystems, and boot text are defined in JSON.
-- **Case-insensitive.** All commands, files, and directories are case-insensitive.
-- **Read-only.** No file creation, editing, or deletion in Milestone 1.
-- **Strict, Linux-like errors.** Predictable error handling, no hand-holding or auto-correction.
-- **Session-only state.** No persistence; every run is a clean session unless handled by the consumer.
-- **Debug mode is dev-only.** Toggled by command, never shipped in production builds.
-- **REFERENCE.md is law.** If you’re unsure, check [REFERENCE.md](./docs/env0.terminal.unity_REFERENCE.md)—it is always the source of truth.
+- **Pure C# logic.** No UI, no Unity dependencies—strict backend engine.
+- **JSON-driven.** All world content (devices, filesystems, users) is externally defined.
+- **Case-insensitive.** Commands, files, and directories are all case-insensitive.
+- **Read-only.** No file creation/editing in Milestone 1—filesystem is static per session.
+- **Strict errors.** All command errors follow Linux conventions: no hand-holding, no suggestions.
+- **Session-only state.** No persistence or mutation outside the runtime session.
+- **Debug mode is dev-only.** Controlled by future flags—not exposed to players; all debug output is currently commented and tagged for later integration.
+- **REFERENCE.md is law.** It governs system behavior and test expectations. If you’re unsure, read [REFERENCE.md](./docs/env0.terminal.unity_REFERENCE.md).
+
+---
+
+## 🖥️ Rendering & UI Separation
+
+- **All rendering, screen clearing, cursor, and visual effects are handled entirely by the consuming application** (CLI, Unity, etc.).  
+  This engine provides only logic, state, and output—never visual formatting or presentation.
 
 ---
 
 ## 📝 Development Cycle
 
-The following cycle is strictly enforced for all core and feature work:
+The following discipline is enforced for all code and content changes:
+
 1. Decide the next feature or fix
 2. Build the feature (code, logic, or config)
-3. Build the test (unit/integration/hostile case as appropriate)
+3. Build the test (unit/integration/hostile case)
 4. Test and debug until all automated tests pass
-    - Includes standard and hostile/psychotic edge-case suites
-    - Regularly interrogate and expand hostile test coverage
-5. Modify for user test in Playground (manual verification, if relevant)
-6. Commit once happy (atomic, meaningful commit; no “test/fix/test/fix” in main)
-7. Update the Tasklist (env0.terminal.unity_tasklist.md)
+   - Includes standard, hostile, and edge-case coverage
+5. Modify for manual test in Playground (if needed)
+6. Commit once happy (atomic, meaningful commit only)
+7. Update the Tasklist (`env0.terminal.unity_tasklist.md`)
 
-This discipline is non-negotiable. All contributors and future development must adhere.
+This process is non-negotiable. All contributors must adhere.
 
 ---
 
 ## ⚠️ Out of Scope
 
-- No UI, rendering, or audio logic.
-- No session saving/loading or cloud sync.
-- No file creation or editing (read-only).
-- No command chaining, tab-completion, or fuzzy matching.
-- No environment variables or scripting.
-- No multi-user or permission systems (yet).
+- No UI, rendering, or audio logic
+- No persistent session state or save/load
+- No fuzzy matching, command history, or autocomplete
+- No permission system or multi-user logic (yet)
+- No write access or script execution
+- No environment variables or piping
 
 ---
 
@@ -109,4 +187,4 @@ MIT License
 
 ---
 
-**For all implementation rules and edge cases, REFERENCE.md is canonical. When in doubt, check there or ask.**
+**For all implementation rules and edge cases, `REFERENCE.md` is canonical. When in doubt, check there or ask.**
