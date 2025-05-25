@@ -28,10 +28,8 @@ namespace Env0.Terminal.Terminal.Commands
                 // Update session with the new absolute path!
                 session.CurrentWorkingDirectory = session.FilesystemManager.GetCurrentDirectoryPath();
 
-                // TODO: hook up to debug flag
-                // Console.WriteLine($"[DEBUG] cd success: now at {session.CurrentWorkingDirectory}");
+                DebugUtility.PrintContext("CdCommand", $"cd success: now at {session.CurrentWorkingDirectory}");
 
-                // TODO: hook up to debug flag
                 /*
                 var node = session.FilesystemManager.CurrentDirectory;
                 var chain = new List<string>();
@@ -41,15 +39,14 @@ namespace Env0.Terminal.Terminal.Commands
                     node = node.Parent;
                 }
                 chain.Reverse();
-                Console.WriteLine($"[DEBUG] CWD parent chain: /{string.Join("/", chain)}");
+                DebugUtility.PrintContext("CdCommand", $"CWD parent chain: /{string.Join("/", chain)}");
                 */
 
                 return new CommandResult(string.Empty);
             }
             else
             {
-                // TODO: hook up to debug flag
-                // Console.WriteLine($"[DEBUG] cd failed: {error}");
+                DebugUtility.PrintContext("CdCommand", $"cd failed: {error}");
                 return new CommandResult($"bash: cd: {error}\n\n", isError: true);
             }
         }

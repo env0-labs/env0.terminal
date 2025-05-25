@@ -31,7 +31,7 @@ namespace Env0.Terminal.Filesystem
                 // PATCH: Files get their content, no children!
                 fsEntry.Content = entry.Content;
                 fsEntry.Children = null;
-                Console.WriteLine($"[DEBUG] Converter: File '{name}', Content='{entry.Content ?? "NULL"}'");
+                DebugUtility.PrintContext("Converter", $"File '{name}', Content='{entry.Content ?? "NULL"}'");
             }
             else
             {
@@ -46,7 +46,7 @@ namespace Env0.Terminal.Filesystem
                         fsEntry.Children.Add(kvp.Key, child);
                     }
                 }
-                Console.WriteLine($"[DEBUG] Converter: Directory '{name}', ChildCount={fsEntry.Children.Count}");
+                DebugUtility.PrintContext("Converter", $"Directory '{name}', ChildCount={fsEntry.Children.Count}");
             }
 
             return fsEntry;
