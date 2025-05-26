@@ -11,7 +11,9 @@ namespace Env0.Terminal.Terminal.Commands
             // Here, we ONLY validate arguments and give canonical SSH command output if obviously malformed.
 
             if (args.Length == 0 || string.IsNullOrWhiteSpace(args[0]))
-                return new CommandResult("bash: ssh: Missing host\n\n", isError: true);
+            {
+                return new CommandResult("bash: ssh: Missing host\n\n", OutputType.Error);
+            }
 
             string user = null, host = null;
             var target = args[0].Trim();
@@ -27,12 +29,14 @@ namespace Env0.Terminal.Terminal.Commands
             }
 
             if (string.IsNullOrWhiteSpace(host))
-                return new CommandResult("bash: ssh: Invalid or missing host\n\n", isError: true);
+            {
+                return new CommandResult("bash: ssh: Invalid or missing host\n\n", OutputType.Error);
+            }
 
             // All actual SSH logic (including device lookup, login, stack push, prompt management) is handled in TerminalEngineAPI.
             // We just return "ok" to signal to API to take over.
 
-            return new CommandResult(""); // Empty output; API will own the flow.
+            return new CommandResult(string.Empty, OutputType.Standard); // Explicit for compiler
         }
     }
 }

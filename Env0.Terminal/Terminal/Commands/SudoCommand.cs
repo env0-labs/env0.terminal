@@ -28,7 +28,7 @@ namespace Env0.Terminal.Terminal.Commands
         {
             var random = new Random(Guid.NewGuid().GetHashCode());
             var response = Responses[random.Next(Responses.Length)];
-            return new CommandResult(response + "\n");
+            return new CommandResult(response + "\n", OutputType.Error);
         }
     }
 }

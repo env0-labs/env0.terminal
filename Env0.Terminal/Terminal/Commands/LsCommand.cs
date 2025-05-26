@@ -20,32 +20,26 @@ namespace Env0.Terminal.Terminal.Commands
 
             DebugUtility.PrintContext("LsCommand", $"Listing directory: '{targetDir}'");
 
+            var result = new CommandResult();
+
             if (!fsManager.TryGetDirectory(targetDir, out var dir, out var error))
             {
                 DebugUtility.PrintContext("LsCommand", $"TryGetDirectory failed: {error}");
-                return new CommandResult($"bash: ls: {error}\n\n", isError: true);
+                result.AddLine($"bash: ls: {error}\n", OutputType.Error);
+                result.AddLine(string.Empty, OutputType.Error); // breathing room
+                return result;
             }
 
             if (!dir.IsDirectory)
             {
                 DebugUtility.PrintContext("LsCommand", $"Not a directory: {targetDir}");
-                return new CommandResult($"bash: ls: Not a directory: {targetDir}\n\n", isError: true);
+                result.AddLine($"bash: ls: Not a directory: {targetDir}\n", OutputType.Error);
+                result.AddLine(string.Empty, OutputType.Error);
+                return result;
             }
-
-            /*
-            var node = dir;
-            var chain = new List<string>();
-            while (node != null)
-            {
-                chain.Add(node.Name);
-                node = node.Parent;
-            }
-            chain.Reverse();
-            DebugUtility.PrintContext("LsCommand", $"Listed directory parent chain: /{string.Join("/", chain)}");
-            */
 
             if (dir.Children.Count == 0)
-                return new CommandResult(string.Empty);
+                return result; // empty output, no lines
 
             // List dirs first, then files (alpha order)
             var dirs = new List<string>();
@@ -62,7 +56,9 @@ namespace Env0.Terminal.Terminal.Commands
             files.Sort(StringComparer.OrdinalIgnoreCase);
 
             var output = string.Join("  ", dirs.Concat(files));
-            return new CommandResult(output);
+            result.AddLine(output, OutputType.Standard);
+
+            return result;
         }
     }
 }

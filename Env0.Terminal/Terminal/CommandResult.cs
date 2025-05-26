@@ -1,25 +1,42 @@
+using System.Collections.Generic;
+
 namespace Env0.Terminal.Terminal
 {
     public class CommandResult
     {
-        public string Output { get; set; }
-        public bool IsError { get; set; }
-        public bool RequiresPaging { get; set; }
-        public bool StateChanged { get; set; }
+        // Structured output lines with type badges
+        public List<TerminalOutputLine> OutputLines { get; set; } = new();
+
+        // Legacy support: concatenated plain output string from OutputLines
+        public string Output => OutputLines.Count > 0
+            ? string.Join("\n", OutputLines.ConvertAll(l => l.Text))
+            : string.Empty;
+
+        // True if any OutputLine is an error
+        public bool IsError => OutputLines.Exists(l => l.Type == OutputType.Error);
+
+        // Pagination flag
+        public bool RequiresPaging { get; set; } = false;
+
+        // Indicates if the command caused a session state change
+        public bool StateChanged { get; set; } = false;
+
+        // Holds updated session state if any
         public SessionState UpdatedSession { get; set; }
 
-        public CommandResult(
-            string output,
-            bool isError = false,
-            bool requiresPaging = false,
-            bool stateChanged = false,
-            SessionState updatedSession = null)
+        // Default constructor
+        public CommandResult() { }
+
+        // One-liner constructor with OutputType, defaulting to Standard
+        public CommandResult(string text, OutputType type = OutputType.Standard)
         {
-            Output = output;
-            IsError = isError;
-            RequiresPaging = requiresPaging;
-            StateChanged = stateChanged;
-            UpdatedSession = updatedSession;
+            OutputLines.Add(new TerminalOutputLine(text, type));
+        }
+
+        // Add a line with an explicit OutputType
+        public void AddLine(string text, OutputType type = OutputType.Standard)
+        {
+            OutputLines.Add(new TerminalOutputLine(text, type));
         }
     }
 }

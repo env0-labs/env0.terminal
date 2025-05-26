@@ -9,7 +9,7 @@ namespace Env0.Terminal.Playground
         static void Main(string[] args)
         {
             var api = new TerminalEngineAPI();
-            DebugUtility.Enabled = false;
+            DebugUtility.Enabled = true;
             api.Initialize();
 
             Console.WriteLine("env0.terminal playground (type 'exit' to quit)");
@@ -25,7 +25,11 @@ namespace Env0.Terminal.Playground
                         if (state.BootSequenceLines != null)
                         {
                             foreach (var line in state.BootSequenceLines)
+                            {
                                 Console.WriteLine(line);
+                                if (DebugUtility.Enabled)
+                                    Console.WriteLine("[OutputType: Boot]");
+                            }
                         }
                         state = api.Execute(""); // Advance to login
                         continue;
@@ -33,8 +37,7 @@ namespace Env0.Terminal.Playground
                     case TerminalPhase.Login:
                         while (state.Phase == TerminalPhase.Login)
                         {
-                            if (!string.IsNullOrWhiteSpace(state.Output))
-                                Console.WriteLine(state.Output);
+                            PrintOutputLines(state);
 
                             if (state.IsLoginPrompt)
                             {
@@ -59,11 +62,7 @@ namespace Env0.Terminal.Playground
 
                     case TerminalPhase.Terminal:
                     default:
-                        if (!string.IsNullOrWhiteSpace(state.Output))
-                        {
-                            Console.WriteLine(state.Output);
-                            state.Output = null;
-                        }
+                        PrintOutputLines(state);
 
                         while (true)
                         {
@@ -77,11 +76,7 @@ namespace Env0.Terminal.Playground
                             if (state.Phase == TerminalPhase.Login)
                                 break;
 
-                            if (!string.IsNullOrWhiteSpace(state.Output))
-                            {
-                                Console.WriteLine(state.Output);
-                                state.Output = null;
-                            }
+                            PrintOutputLines(state);
 
                             if (state.IsError && !string.IsNullOrWhiteSpace(state.ErrorMessage))
                                 Console.WriteLine($"[ERROR] {state.ErrorMessage}");
@@ -91,6 +86,24 @@ namespace Env0.Terminal.Playground
                         }
                         continue;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Prints the output lines with optional debug output type tags.
+        /// Clears the output lines after printing.
+        /// </summary>
+        static void PrintOutputLines(TerminalRenderState state)
+        {
+            if (state.OutputLines != null && state.OutputLines.Count > 0)
+            {
+                foreach (var line in state.OutputLines)
+                {
+                    Console.WriteLine(line.Text);
+                    if (DebugUtility.Enabled)
+                        Console.WriteLine($"[OutputType: {line.Type}]");
+                }
+                state.OutputLines.Clear();
             }
         }
 

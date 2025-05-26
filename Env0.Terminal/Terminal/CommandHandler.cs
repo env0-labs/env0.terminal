@@ -26,8 +26,6 @@ namespace Env0.Terminal.Terminal
             RegisterCommand("help", new HelpCommand());
             RegisterCommand("ifconfig", new IfconfigCommand());
 
-            
-            
             //  TODO: once everything is stable we can look at implementing debug commands as they require full stack for operation. Await Milestone 1B succesful test output before implementation.
             /*// Debug-only commands
             if (debugMode)
@@ -48,7 +46,7 @@ namespace Env0.Terminal.Terminal
         public CommandResult Execute(string input, SessionState session)
         {
             if (string.IsNullOrWhiteSpace(input))
-                return new CommandResult(string.Empty);
+                return new CommandResult(string.Empty, OutputType.Standard);
 
             var parts = input.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
             var cmd = parts[0];
@@ -58,7 +56,7 @@ namespace Env0.Terminal.Terminal
             {
                 return command.Execute(session, args);
             }
-            return new CommandResult($"bash: {cmd}: command not found\n\n", isError: true);
+            return new CommandResult($"bash: {cmd}: command not found\n\n", OutputType.Error);
         }
     }
 }

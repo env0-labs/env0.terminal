@@ -7,21 +7,34 @@ namespace Env0.Terminal.Terminal.Commands
     {
         public CommandResult Execute(SessionState session, string[] args)
         {
+            var result = new CommandResult();
+
             if (session?.FilesystemManager == null)
-                return new CommandResult("bash: read: Filesystem not initialized.\n\n", isError: true);
+            {
+                result.AddLine("bash: read: Filesystem not initialized.\n", OutputType.Error);
+                result.AddLine(string.Empty, OutputType.Error);
+                return result;
+            }
 
             if (args.Length == 0 || string.IsNullOrWhiteSpace(args[0]))
-                return new CommandResult("bash: read: No file specified.\n\n", isError: true);
+            {
+                result.AddLine("bash: read: No file specified.\n", OutputType.Error);
+                result.AddLine(string.Empty, OutputType.Error);
+                return result;
+            }
 
             string target = args[0].Trim();
-            string content, error;
-            bool success = session.FilesystemManager.GetFileContent(target, out content, out error);
+            if (!session.FilesystemManager.GetFileContent(target, out var content, out var error))
+            {
+                result.AddLine($"bash: read: {error}\n", OutputType.Error);
+                result.AddLine(string.Empty, OutputType.Error);
+                return result;
+            }
 
-            if (!success)
-                return new CommandResult($"bash: read: {error}\n\n", isError: true);
+            result.AddLine(content, OutputType.Standard);
+            result.RequiresPaging = true;
 
-            // If you want to simulate pagination, you can set RequiresPaging = true
-            return new CommandResult(content, isError: false, requiresPaging: true);
+            return result;
         }
     }
 }

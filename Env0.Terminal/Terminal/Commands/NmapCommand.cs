@@ -10,12 +10,20 @@ namespace Env0.Terminal.Terminal.Commands
     {
         public CommandResult Execute(SessionState session, string[] args)
         {
+            var result = new CommandResult();
+
             if (session?.NetworkManager == null || session.DeviceInfo == null)
-                return new CommandResult("bash: nmap: network or device not initialized\n", isError: true);
+            {
+                result.AddLine("bash: nmap: network or device not initialized\n", OutputType.Error);
+                return result;
+            }
 
             // No arguments: print bash error
             if (args.Length == 0)
-                return new CommandResult("bash: nmap: target or subnet required\n");
+            {
+                result.AddLine("bash: nmap: target or subnet required\n", OutputType.Error);
+                return result;
+            }
 
             var target = args[0].Trim();
 
@@ -24,12 +32,17 @@ namespace Env0.Terminal.Terminal.Commands
             {
                 var devices = session.NetworkManager.GetDevicesOnSubnet(target);
                 if (devices == null || devices.Count == 0)
-                    return new CommandResult("No devices found on the subnet.\n");
+                {
+                    result.AddLine("No devices found on the subnet.\n", OutputType.Standard);
+                    return result;
+                }
 
                 var output = string.Join("\n", devices.Select(d =>
                     $"{d.Ip,-15} {d.Hostname,-25} [Ports: {string.Join(", ", d.Ports)}] {d.Description}"
                 ));
-                return new CommandResult($"Starting Nmap scan for subnet {target}...\n\n{output}\n");
+                result.AddLine($"Starting Nmap scan for subnet {target}...\n", OutputType.Standard);
+                result.AddLine(output, OutputType.Standard);
+                return result;
             }
 
             // Host/IP lookup
@@ -37,15 +50,21 @@ namespace Env0.Terminal.Terminal.Commands
             if (device != null)
             {
                 var output = $"{device.Ip,-15} {device.Hostname,-25} [Ports: {string.Join(", ", device.Ports)}] {device.Description}";
-                return new CommandResult($"Starting Nmap scan for host {target}...\n\n{output}\n");
+                result.AddLine($"Starting Nmap scan for host {target}...\n", OutputType.Standard);
+                result.AddLine(output, OutputType.Standard);
+                return result;
             }
 
             // If it looks like a subnet (contains /), but is not valid
             if (target.Contains("/"))
-                return new CommandResult("bash: nmap: invalid subnet format\n");
+            {
+                result.AddLine("bash: nmap: invalid subnet format\n", OutputType.Error);
+                return result;
+            }
 
             // Otherwise, host not found
-            return new CommandResult("bash: nmap: host not found\n");
+            result.AddLine("bash: nmap: host not found\n", OutputType.Error);
+            return result;
         }
 
         // Only /24 support for now

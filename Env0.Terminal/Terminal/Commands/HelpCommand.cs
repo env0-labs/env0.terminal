@@ -27,7 +27,7 @@ Available commands:
 Type 'help [command]' for more info (not yet implemented).
 ";
 
-            return new CommandResult(helpText.Trim());
+            return new CommandResult(helpText.Trim(), OutputType.Standard);
         }
     }
 }

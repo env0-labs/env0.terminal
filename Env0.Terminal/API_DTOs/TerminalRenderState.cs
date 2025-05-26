@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Env0.Terminal.Config.Pocos;
+using Env0.Terminal.Terminal;
 
 
 namespace Env0.Terminal.API_DTOs
@@ -22,7 +23,9 @@ namespace Env0.Terminal.API_DTOs
 
         // Shell/terminal phase
         public string Prompt { get; set; }                 // e.g., user@host:/cwd$
-        public string Output { get; set; }                 // Last command result or output
+        public string Output { get; set; }                 // Last command result or output (legacy)
+        public List<TerminalOutputLine> OutputLines { get; set; } = new List<TerminalOutputLine>();  // NEW typed output lines
+
         public string CurrentDirectory { get; set; }
         public List<string> DirectoryListing { get; set; }
         public int SessionStackDepth { get; set; }
@@ -41,6 +44,5 @@ namespace Env0.Terminal.API_DTOs
         
         // Expose Device Details
         public DeviceInfo DeviceInfo { get; set; }
-
     }
 }

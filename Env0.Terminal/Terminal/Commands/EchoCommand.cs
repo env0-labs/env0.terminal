@@ -11,7 +11,8 @@ namespace Env0.Terminal.Terminal.Commands
                 ? ""
                 : string.Join(" ", args);
 
-            return new CommandResult(output);
+            // Return as Standard output explicitly
+            return new CommandResult(output, OutputType.Standard);
         }
     }
 }

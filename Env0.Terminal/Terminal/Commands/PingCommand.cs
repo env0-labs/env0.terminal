@@ -1,4 +1,6 @@
 using Env0.Terminal.Terminal;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Env0.Terminal.Terminal.Commands
 {
@@ -6,17 +8,28 @@ namespace Env0.Terminal.Terminal.Commands
     {
         public CommandResult Execute(SessionState session, string[] args)
         {
+            var result = new CommandResult();
+
             if (session?.NetworkManager == null)
-                return new CommandResult("ping: Network not initialized.\n", isError: true);
+            {
+                result.AddLine("ping: Network not initialized.\n", OutputType.Error);
+                return result;
+            }
 
             if (args.Length == 0 || string.IsNullOrWhiteSpace(args[0]))
-                return new CommandResult("ping: Missing hostname or IP.\n", isError: true);
+            {
+                result.AddLine("ping: Missing hostname or IP.\n", OutputType.Error);
+                return result;
+            }
 
             string target = args[0].Trim();
             var device = session.NetworkManager.FindDevice(target);
 
             if (device == null)
-                return new CommandResult($"ping: {target}: Host unreachable\n", isError: true);
+            {
+                result.AddLine($"ping: {target}: Host unreachable\n", OutputType.Error);
+                return result;
+            }
 
             // Optional: parse count from args (e.g., "ping -c 2 host")
             int packetCount = 4;
@@ -27,24 +40,28 @@ namespace Env0.Terminal.Terminal.Commands
             }
 
             var results = session.NetworkManager.Ping(device, packetCount);
-            var outputLines = new List<string>();
+
             foreach (var res in results)
             {
                 if (res.Dropped)
                 {
-                    outputLines.Add($"Request timeout for icmp_seq {res.Sequence}");
+                    result.AddLine($"Request timeout for icmp_seq {res.Sequence}", OutputType.Standard);
                 }
                 else
                 {
-                    outputLines.Add($"Reply from {device.Ip}: icmp_seq={res.Sequence} ttl={res.Ttl} time={res.TimeMs} ms");
+                    result.AddLine($"Reply from {device.Ip}: icmp_seq={res.Sequence} ttl={res.Ttl} time={res.TimeMs} ms", OutputType.Standard);
                 }
             }
-            outputLines.Add($"\n--- {device.Hostname} ping statistics ---");
+
+            result.AddLine($"\n--- {device.Hostname} ping statistics ---", OutputType.Standard);
+
             int received = results.Count(r => !r.Dropped);
             int lost = results.Count(r => r.Dropped);
-            outputLines.Add($"{results.Count} packets transmitted, {received} received, {lost / (double)results.Count * 100:0.#}% packet loss");
+            double lossPercent = lost / (double)results.Count * 100;
 
-            return new CommandResult(string.Join("\n", outputLines));
+            result.AddLine($"{results.Count} packets transmitted, {received} received, {lossPercent:0.#}% packet loss", OutputType.Standard);
+
+            return result;
         }
     }
 }

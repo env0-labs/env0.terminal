@@ -433,7 +433,8 @@ namespace Env0.Terminal
                     }
 
                     var result = _commandHandler.Execute(input, _session);
-                    return BuildRenderState(result.Output, result.IsError);
+                    return BuildRenderState(result);
+
             }
         }
 
@@ -482,6 +483,40 @@ namespace Env0.Terminal
             };
         }
 
+        // NEW: Properly hand off typed output from commands to terminal state
+        private TerminalRenderState BuildRenderState(CommandResult result)
+        {
+            return new TerminalRenderState
+            {
+                Phase = _phase,
+                BootSequenceLines = _phase == TerminalPhase.Booting
+                    ? JsonLoader.BootConfig?.BootText ?? new List<string>()
+                    : null,
+
+                IsLoginPrompt = _phase == TerminalPhase.Login && _loginStep == LoginStep.Username,
+                IsPasswordPrompt = _phase == TerminalPhase.Login && _loginStep == LoginStep.Password,
+                Prompt = _phase == TerminalPhase.Terminal
+                    ? $"{_session.Username}@{_session.Hostname}:{_session.CurrentWorkingDirectory}$ "
+                    : (_phase == TerminalPhase.Login && _loginStep == LoginStep.Username ? "Username: "
+                        : (_phase == TerminalPhase.Login && _loginStep == LoginStep.Password ? "Password: " : "")),
+
+                OutputLines = result.OutputLines,
+                CurrentDirectory = _session.CurrentWorkingDirectory,
+                DirectoryListing = _filesystemManager.ListCurrentDirectory(),
+                SessionStackDepth = _session.SshStack.Count,
+                SessionStackView = BuildSessionStackView(),
+                ClearScreen = false,
+                IsError = result.IsError,
+                ErrorMessage = result.IsError ? result.Output : null,
+                ShowMOTD = false,
+                MOTD = _session.DeviceInfo?.Motd,
+                DebugMode = _session.DebugMode,
+                DebugInfo = null,
+                DeviceInfo = _session.DeviceInfo
+            };
+        }
+
+        
         private List<SessionContext> BuildSessionStackView()
         {
             var stack = new List<SessionContext>();
