@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
+using UnityEngine;
+#endif
 using Env0.Terminal.Config.Pocos;
 
 namespace Env0.Terminal.Config
@@ -12,25 +15,37 @@ namespace Env0.Terminal.Config
         // Loaded configs
         public static BootConfig BootConfig { get; private set; }
         public static UserConfig UserConfig { get; private set; }
-
-        // Devices
         public static List<DeviceInfo> Devices { get; private set; } = new();
-
-        // Filesystems (keyed by filename, e.g., "Filesystem_1.json")
         public static Dictionary<string, Env0.Terminal.Config.Pocos.Filesystem> Filesystems { get; private set; } = new();
-
-        // Validation errors (visible in debug)
         public static List<string> ValidationErrors { get; private set; } = new List<string>();
 
+        /// <summary>
+        /// Resolves a set of possible relative paths and always tries Unity's StreamingAssets first if available.
+        /// Falls back to classic relative paths for console testing.
+        /// </summary>
         private static string ResolvePath(params string[] pathOptions)
         {
             foreach (var path in pathOptions)
             {
-                if (System.IO.File.Exists(path))
+                if (File.Exists(path))
                     return path;
             }
-            // If none found, return the first anyway (to fail with a clear error)
+            // If none found, return the first (to fail with a clear error)
             return pathOptions.First();
+        }
+
+        /// <summary>
+        /// Translates a relative config path to StreamingAssets if in Unity, else returns the original path.
+        /// </summary>
+        private static string UPath(string relativePath)
+        {
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_WEBGL
+            string fullPath = Path.Combine(Application.streamingAssetsPath, relativePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
+            if (File.Exists(fullPath))
+                return fullPath;
+#endif
+            // fallback to normal path for console/test usage
+            return relativePath;
         }
 
         public static void LoadAll()
@@ -40,6 +55,8 @@ namespace Env0.Terminal.Config
             // BootConfig
             BootConfig = LoadBootConfig(
                 ResolvePath(
+                    UPath("Config/Jsons/BootConfig.json"),
+                    UPath("Env0.Terminal/Config/Jsons/BootConfig.json"),
                     "Config/Jsons/BootConfig.json",
                     "Env0.Terminal/Config/Jsons/BootConfig.json"
                 ),
@@ -50,6 +67,8 @@ namespace Env0.Terminal.Config
             // UserConfig
             UserConfig = LoadUserConfig(
                 ResolvePath(
+                    UPath("Config/Jsons/UserConfig.json"),
+                    UPath("Env0.Terminal/Config/Jsons/UserConfig.json"),
                     "Config/Jsons/UserConfig.json",
                     "Env0.Terminal/Config/Jsons/UserConfig.json"
                 ),
@@ -60,6 +79,8 @@ namespace Env0.Terminal.Config
             // Devices
             Devices = LoadDevices(
                 ResolvePath(
+                    UPath("Config/Jsons/Devices.json"),
+                    UPath("Env0.Terminal/Config/Jsons/Devices.json"),
                     "Config/Jsons/Devices.json",
                     "Env0.Terminal/Config/Jsons/Devices.json"
                 ),
@@ -71,11 +92,12 @@ namespace Env0.Terminal.Config
             for (int i = 1; i <= 10; i++)
             {
                 var path = ResolvePath(
+                    UPath($"Config/Jsons/JsonFilesystems/Filesystem_{i}.json"),
+                    UPath($"Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_{i}.json"),
                     $"Config/Jsons/JsonFilesystems/Filesystem_{i}.json",
                     $"Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_{i}.json"
                 );
 
-                // === Debug 1: Print raw JSON before deserialization ===
                 if (File.Exists(path))
                 {
                     var raw = File.ReadAllText(path);
@@ -86,7 +108,6 @@ namespace Env0.Terminal.Config
 
                 var fs = LoadFilesystem(path, out var fsErrors);
 
-                // === Debug 2: Print fs.Root state after deserialization ===
                 if (fs != null)
                 {
                     DebugUtility.PrintContext("FS", $"fs.Root is null? {(fs.Root == null)}");
@@ -95,7 +116,6 @@ namespace Env0.Terminal.Config
                     else
                         DebugUtility.PrintContext("FS", "fs.Root keys: null");
 
-                    // === Debug 3: Print tutorial.txt content if present ===
                     if (fs.Root != null && fs.Root.ContainsKey("tutorial.txt"))
                         DebugUtility.PrintContext("FS", $"tutorial.txt content (from loader): {fs.Root["tutorial.txt"].Content ?? "NULL"}");
                     else
@@ -108,6 +128,8 @@ namespace Env0.Terminal.Config
 
             // Filesystem_11.json (safe fallback)
             var safePath = ResolvePath(
+                UPath("Config/Jsons/JsonFilesystems/Filesystem_11.json"),
+                UPath("Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_11.json"),
                 "Config/Jsons/JsonFilesystems/Filesystem_11.json",
                 "Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_11.json"
             );
@@ -134,7 +156,7 @@ namespace Env0.Terminal.Config
             ValidationErrors.AddRange(safeErrors);
         }
 
-        // --- Rest of your methods are unchanged! ---
+        // --- Rest of the methods below are unchanged! ---
 
         internal static BootConfig LoadBootConfig(string path, out List<string> errors)
         {
