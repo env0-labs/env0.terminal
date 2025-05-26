@@ -167,7 +167,7 @@ namespace Env0.Terminal
                             string warning = string.IsNullOrEmpty(_capturedPassword)
                                 ? "no password? well you like to live dangerously... I'll allow it\n"
                                 : "";
-                            return BuildRenderState($"{warning}Login complete!\nType read tutorial.txt for instructions\n");
+                            return BuildRenderState($"{warning}Login complete!\n\nType read tutorial.txt for instructions\n");
                         }
                         // Reset to username prompt on any weird state
                         _loginStep = LoginStep.Username;

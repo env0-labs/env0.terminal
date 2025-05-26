@@ -36,7 +36,7 @@ namespace Env0.Terminal.Terminal.Commands
             // All actual SSH logic (including device lookup, login, stack push, prompt management) is handled in TerminalEngineAPI.
             // We just return "ok" to signal to API to take over.
 
-            return new CommandResult(string.Empty, OutputType.Standard); // Explicit for compiler
+            return new CommandResult(string.Empty, OutputType.Auth); // Explicit for compiler
         }
     }
 }

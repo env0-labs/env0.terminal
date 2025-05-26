@@ -33,15 +33,15 @@ namespace Env0.Terminal.Terminal.Commands
                 var devices = session.NetworkManager.GetDevicesOnSubnet(target);
                 if (devices == null || devices.Count == 0)
                 {
-                    result.AddLine("No devices found on the subnet.\n", OutputType.Standard);
+                    result.AddLine("No devices found on the subnet.\n", OutputType.Scan);
                     return result;
                 }
 
                 var output = string.Join("\n", devices.Select(d =>
                     $"{d.Ip,-15} {d.Hostname,-25} [Ports: {string.Join(", ", d.Ports)}] {d.Description}"
                 ));
-                result.AddLine($"Starting Nmap scan for subnet {target}...\n", OutputType.Standard);
-                result.AddLine(output, OutputType.Standard);
+                result.AddLine($"Starting Nmap scan for subnet {target}...\n", OutputType.Scan);
+                result.AddLine(output, OutputType.Scan);
                 return result;
             }
 
@@ -50,8 +50,8 @@ namespace Env0.Terminal.Terminal.Commands
             if (device != null)
             {
                 var output = $"{device.Ip,-15} {device.Hostname,-25} [Ports: {string.Join(", ", device.Ports)}] {device.Description}";
-                result.AddLine($"Starting Nmap scan for host {target}...\n", OutputType.Standard);
-                result.AddLine(output, OutputType.Standard);
+                result.AddLine($"Starting Nmap scan for host {target}...\n", OutputType.Scan);
+                result.AddLine(output, OutputType.Scan);
                 return result;
             }
 

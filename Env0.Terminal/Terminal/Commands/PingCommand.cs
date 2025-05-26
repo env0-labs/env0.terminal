@@ -45,21 +45,21 @@ namespace Env0.Terminal.Terminal.Commands
             {
                 if (res.Dropped)
                 {
-                    result.AddLine($"Request timeout for icmp_seq {res.Sequence}", OutputType.Standard);
+                    result.AddLine($"Request timeout for icmp_seq {res.Sequence}", OutputType.Ping);
                 }
                 else
                 {
-                    result.AddLine($"Reply from {device.Ip}: icmp_seq={res.Sequence} ttl={res.Ttl} time={res.TimeMs} ms", OutputType.Standard);
+                    result.AddLine($"Reply from {device.Ip}: icmp_seq={res.Sequence} ttl={res.Ttl} time={res.TimeMs} ms", OutputType.Ping);
                 }
             }
 
-            result.AddLine($"\n--- {device.Hostname} ping statistics ---", OutputType.Standard);
+            result.AddLine($"\n--- {device.Hostname} ping statistics ---", OutputType.Ping);
 
             int received = results.Count(r => !r.Dropped);
             int lost = results.Count(r => r.Dropped);
             double lossPercent = lost / (double)results.Count * 100;
 
-            result.AddLine($"{results.Count} packets transmitted, {received} received, {lossPercent:0.#}% packet loss", OutputType.Standard);
+            result.AddLine($"{results.Count} packets transmitted, {received} received, {lossPercent:0.#}% packet loss", OutputType.Ping);
 
             return result;
         }
