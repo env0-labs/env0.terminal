@@ -18,10 +18,10 @@ namespace Env0.Terminal.Config
         public static UserConfig UserConfig { get; private set; }
 
         // Devices
-        public static List<DeviceInfo> Devices { get; private set; } = new List<DeviceInfo>();
+        public static List<DeviceInfo> Devices { get; private set; } = new();
 
         // Filesystems (keyed by filename, e.g., "Filesystem_1.json")
-        public static Dictionary<string, Env0.Terminal.Config.Pocos.Filesystem> Filesystems { get; private set; } = new Dictionary<string, Env0.Terminal.Config.Pocos.Filesystem>();
+        public static Dictionary<string, Env0.Terminal.Config.Pocos.Filesystem> Filesystems { get; private set; } = new();
 
         // Validation errors (visible in debug)
         public static List<string> ValidationErrors { get; private set; } = new List<string>();
