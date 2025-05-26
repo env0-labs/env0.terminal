@@ -98,11 +98,13 @@ namespace Env0.Terminal
                     if (!_bootShown)
                     {
                         _bootShown = true;
+                        var bootLines = JsonLoader.BootConfig?.BootText ?? new List<string>();
+
                         return new TerminalRenderState
                         {
                             Phase = TerminalPhase.Booting,
-                            BootSequenceLines = JsonLoader.BootConfig?.BootText ?? new List<string>(),
-                            Output = string.Join("\n", JsonLoader.BootConfig?.BootText ?? new List<string>()) + "\n",
+                            BootSequenceLines = bootLines,
+                            OutputLines = ConvertBootLinesToOutputLines(bootLines),
                             IsLoginPrompt = false,
                             IsPasswordPrompt = false,
                             Prompt = null
@@ -119,7 +121,8 @@ namespace Env0.Terminal
                         Phase = TerminalPhase.Login,
                         IsLoginPrompt = true,
                         IsPasswordPrompt = false,
-                        Prompt = "Username: "
+                        Prompt = "Username: ",
+                        OutputLines = new List<TerminalOutputLine>()
                     };
 
                 case TerminalPhase.Login:
@@ -136,7 +139,7 @@ namespace Env0.Terminal
                                     IsLoginPrompt = true,
                                     IsPasswordPrompt = false,
                                     Prompt = "Username: ",
-                                    Output = "Trying to log in as a ghost? You need a username.\n"
+                                    OutputLines = ConvertToOutputLines("Trying to log in as a ghost? You need a username.\n", isError: true)
                                 };
                             }
                             else
@@ -148,7 +151,8 @@ namespace Env0.Terminal
                                     Phase = TerminalPhase.Login,
                                     IsLoginPrompt = false,
                                     IsPasswordPrompt = true,
-                                    Prompt = "Password: "
+                                    Prompt = "Password: ",
+                                    OutputLines = new List<TerminalOutputLine>()
                                 };
                             }
                         }
@@ -159,6 +163,7 @@ namespace Env0.Terminal
                             _loginHandler.SetPassword(_session, _capturedPassword);
                             _phase = TerminalPhase.Terminal;
                             _loginMode = LoginMode.None;
+                            _loginStep = LoginStep.None;
                             string warning = string.IsNullOrEmpty(_capturedPassword)
                                 ? "no password? well you like to live dangerously... I'll allow it\n"
                                 : "";
@@ -173,14 +178,14 @@ namespace Env0.Terminal
                             Phase = TerminalPhase.Login,
                             IsLoginPrompt = true,
                             IsPasswordPrompt = false,
-                            Prompt = "Username: "
+                            Prompt = "Username: ",
+                            OutputLines = new List<TerminalOutputLine>()
                         };
                     }
 
                     // SSH LOGIN
                     if (_loginMode == LoginMode.Ssh)
                     {
-                        // Username first (if not provided)
                         if (_loginStep == LoginStep.Username)
                         {
                             if (string.IsNullOrWhiteSpace(input))
@@ -191,12 +196,13 @@ namespace Env0.Terminal
                                     IsLoginPrompt = true,
                                     IsPasswordPrompt = false,
                                     Prompt = "Username: ",
-                                    Output = "Username required for SSH login.\n(To abort SSH login, type 'abort' as the username.)\n"
+                                    OutputLines = ConvertToOutputLines(
+                                        "Username required for SSH login.\n(To abort SSH login, type 'abort' as the username.)\n",
+                                        isError: false)
                                 };
                             }
                             if (input.Trim().ToLower() == "abort")
                             {
-                                // pop to previous session
                                 if (_session.SshStack.Count > 0)
                                 {
                                     var prev = _session.SshStack.Pop();
@@ -223,15 +229,13 @@ namespace Env0.Terminal
                                 IsLoginPrompt = false,
                                 IsPasswordPrompt = true,
                                 Prompt = "Password: ",
-                                Output = "(To abort SSH login, type 'abort' as the password.)\n"
+                                OutputLines = ConvertToOutputLines("(To abort SSH login, type 'abort' as the password.)\n", isError: false)
                             };
                         }
-                        // Password next
                         if (_loginStep == LoginStep.Password)
                         {
                             if ((input ?? "").Trim().ToLower() == "abort")
                             {
-                                // pop to previous session
                                 if (_session.SshStack.Count > 0)
                                 {
                                     var prev = _session.SshStack.Pop();
@@ -254,13 +258,11 @@ namespace Env0.Terminal
                             var user = _pendingSshUser;
                             var pass = input ?? "";
 
-                            // Validate credentials
                             var expectedUser = _pendingSshDevice.Username;
                             var expectedPass = _pendingSshDevice.Password;
 
                             if (!string.Equals(user, expectedUser))
                             {
-                                // Retry username
                                 _loginStep = LoginStep.Username;
                                 _pendingSshUser = null;
                                 return new TerminalRenderState
@@ -269,23 +271,25 @@ namespace Env0.Terminal
                                     IsLoginPrompt = true,
                                     IsPasswordPrompt = false,
                                     Prompt = "Username: ",
-                                    Output = "Login failed\n(To abort SSH login, type 'abort' as the username.)\n"
+                                    OutputLines = ConvertToOutputLines(
+                                        "Login failed\n(To abort SSH login, type 'abort' as the username.)\n",
+                                        isError: false)
                                 };
                             }
                             if (pass != expectedPass)
                             {
-                                // Retry password (do NOT say why failed)
                                 return new TerminalRenderState
                                 {
                                     Phase = TerminalPhase.Login,
                                     IsLoginPrompt = false,
                                     IsPasswordPrompt = true,
                                     Prompt = "Password: ",
-                                    Output = "Login failed\n(To abort SSH login, type 'abort' as the password.)\n"
+                                    OutputLines = ConvertToOutputLines(
+                                        "Login failed\n(To abort SSH login, type 'abort' as the password.)\n",
+                                        isError: false)
                                 };
                             }
 
-                            // Success: push SSH context, switch session, drop to terminal, show MOTD/banner
                             _session.SshStack.Push(new SshSessionContext(
                                 _session.Username,
                                 _session.Hostname,
@@ -297,7 +301,6 @@ namespace Env0.Terminal
                             _session.Hostname = _pendingSshDevice.Hostname;
                             _session.CurrentWorkingDirectory = "/";
                             _session.DeviceInfo = _pendingSshDevice;
-                            // Load correct FS for this device
                             _session.FilesystemManager = _sshHandler.LoadFilesystemForDevice(_pendingSshDevice);
                             _session.NetworkManager.CurrentDevice = _pendingSshDevice;
 
@@ -315,7 +318,6 @@ namespace Env0.Terminal
                         }
                     }
 
-                    // Should never hit this, but reset state if it does
                     _loginMode = LoginMode.None;
                     _loginStep = LoginStep.None;
                     _pendingSshTarget = null;
@@ -326,22 +328,21 @@ namespace Env0.Terminal
                         Phase = TerminalPhase.Login,
                         IsLoginPrompt = true,
                         IsPasswordPrompt = false,
-                        Prompt = "Username: "
+                        Prompt = "Username: ",
+                        OutputLines = new List<TerminalOutputLine>()
                     };
 
                 case TerminalPhase.Terminal:
                 default:
                     var parsed = _commandParser.Parse(input);
                     if (parsed == null)
-                        return BuildRenderState("", isError: false);
+                        return BuildRenderState("", false);
 
-                    // Special-case SSH: API takes over phase/SSH handling
                     if (parsed.CommandName == "ssh")
                     {
                         if (parsed.Arguments.Length == 0 || string.IsNullOrWhiteSpace(parsed.Arguments[0]))
                             return BuildRenderState("bash: ssh: Missing host\n\n", true);
 
-                        // Parse user@host
                         string user = null, host = null;
                         var target = parsed.Arguments[0].Trim();
                         if (target.Contains("@"))
@@ -355,33 +356,29 @@ namespace Env0.Terminal
                             host = target;
                         }
 
-                        // Lookup device
                         var device = _networkManager.FindDevice(host);
                         if (device == null || device.Ports == null || !device.Ports.Contains("22"))
                             return BuildRenderState($"ssh: connect to host {host} port 22: Connection refused\n", true);
 
-                        // Prevent SSH-ing into the current device
                         if (device.Ip == _session.DeviceInfo.Ip)
                         {
                             return BuildRenderState(
                                 $"ssh: you are already on {device.Hostname} ({device.Ip})\n",
-                                isError: true
+                                true
                             );
                         }
 
-                        // Prevent cyclic SSH sessions (already in stack)
                         foreach (var ctx in _session.SshStack)
                         {
                             if (ctx.Hostname == device.Hostname && ctx.Username == device.Username)
                             {
                                 return BuildRenderState(
                                     $"ssh: cyclic login detected — already connected to {device.Hostname} as {device.Username}\n",
-                                    isError: true
+                                    true
                                 );
                             }
                         }
 
-                        // -- SSH LOGIN FLOW --
                         _pendingSshTarget = host;
                         _pendingSshDevice = device;
                         _pendingSshUser = user;
@@ -398,7 +395,7 @@ namespace Env0.Terminal
                                 IsLoginPrompt = true,
                                 IsPasswordPrompt = false,
                                 Prompt = "Username: ",
-                                Output = "(To abort SSH login, type 'abort' as the username.)\n"
+                                OutputLines = ConvertToOutputLines("(To abort SSH login, type 'abort' as the username.)\n", false)
                             };
                         }
                         else
@@ -410,13 +407,12 @@ namespace Env0.Terminal
                                 IsLoginPrompt = false,
                                 IsPasswordPrompt = true,
                                 Prompt = "Password: ",
-                                Output = "(To abort SSH login, type 'abort' as the password.)\n"
+                                OutputLines = ConvertToOutputLines("(To abort SSH login, type 'abort' as the password.)\n", false)
                             };
                         }
                     }
                     else if (parsed.CommandName == "exit")
                     {
-                        // Handle SSH stack pop if possible
                         if (_session.SshStack.Count > 0)
                         {
                             var prev = _session.SshStack.Pop();
@@ -428,12 +424,10 @@ namespace Env0.Terminal
                             _session.DeviceInfo = _session.NetworkManager.CurrentDevice;
 
                             var banner = $"Connection to {_session.Hostname} closed.\n";
-                            // Do not drop out of Terminal phase unless truly back to base session
                             return BuildRenderState(banner, false);
                         }
                         else
                         {
-                            // Already at local terminal
                             return BuildRenderState("You are already at the local terminal.\n", false);
                         }
                     }
@@ -507,6 +501,34 @@ namespace Env0.Terminal
                 Prompt = $"{_session.Username}@{_session.Hostname}:{_session.CurrentWorkingDirectory}$ "
             });
             return stack;
+        }
+
+        // Helper: Convert plain string to typed output lines
+        private List<TerminalOutputLine> ConvertToOutputLines(string text, bool isError = false)
+        {
+            if (string.IsNullOrEmpty(text))
+                return new List<TerminalOutputLine>();
+
+            var lines = text.Split(new[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None);
+            var outputType = isError ? OutputType.Error : OutputType.Standard;
+
+            var result = new List<TerminalOutputLine>();
+            foreach (var line in lines)
+            {
+                result.Add(new TerminalOutputLine(line, outputType));
+            }
+            return result;
+        }
+
+        // Helper: Convert boot text lines to typed output lines
+        private List<TerminalOutputLine> ConvertBootLinesToOutputLines(List<string> bootLines)
+        {
+            var result = new List<TerminalOutputLine>();
+            foreach (var line in bootLines ?? new List<string>())
+            {
+                result.Add(new TerminalOutputLine(line, OutputType.Boot));
+            }
+            return result;
         }
     }
 }
