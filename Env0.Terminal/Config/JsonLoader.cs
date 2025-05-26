@@ -5,6 +5,10 @@ using System.Linq;
 using Newtonsoft.Json;
 using Env0.Terminal.Config.Pocos;
 
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+using UnityEngine;
+#endif
+
 namespace Env0.Terminal.Config
 {
     public static class JsonLoader
@@ -22,15 +26,19 @@ namespace Env0.Terminal.Config
         // Validation errors (visible in debug)
         public static List<string> ValidationErrors { get; private set; } = new List<string>();
 
-        private static string ResolvePath(params string[] pathOptions)
+        /// <summary>
+        /// Loads JSON from either Resources (Unity) or direct file path (CLI).
+        /// </summary>
+        private static string LoadJson(string filePath, string resourcePathWithoutExtension)
         {
-            foreach (var path in pathOptions)
-            {
-                if (System.IO.File.Exists(path))
-                    return path;
-            }
-            // If none found, return the first anyway (to fail with a clear error)
-            return pathOptions.First();
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+            var textAsset = Resources.Load<TextAsset>(resourcePathWithoutExtension);
+            if (textAsset != null)
+                return textAsset.text;
+#endif
+            if (File.Exists(filePath))
+                return File.ReadAllText(filePath);
+            return null;
         }
 
         public static void LoadAll()
@@ -39,30 +47,24 @@ namespace Env0.Terminal.Config
 
             // BootConfig
             BootConfig = LoadBootConfig(
-                ResolvePath(
-                    "Config/Jsons/BootConfig.json",
-                    "Env0.Terminal/Config/Jsons/BootConfig.json"
-                ),
+                "Config/Jsons/BootConfig.json",
+                "Config/Jsons/BootConfig",
                 out var bootErrors
             );
             ValidationErrors.AddRange(bootErrors);
 
             // UserConfig
             UserConfig = LoadUserConfig(
-                ResolvePath(
-                    "Config/Jsons/UserConfig.json",
-                    "Env0.Terminal/Config/Jsons/UserConfig.json"
-                ),
+                "Config/Jsons/UserConfig.json",
+                "Config/Jsons/UserConfig",
                 out var userErrors
             );
             ValidationErrors.AddRange(userErrors);
 
             // Devices
             Devices = LoadDevices(
-                ResolvePath(
-                    "Config/Jsons/Devices.json",
-                    "Env0.Terminal/Config/Jsons/Devices.json"
-                ),
+                "Config/Jsons/Devices.json",
+                "Config/Jsons/Devices",
                 out var deviceErrors
             );
             ValidationErrors.AddRange(deviceErrors);
@@ -70,23 +72,22 @@ namespace Env0.Terminal.Config
             // Filesystems 1-10
             for (int i = 1; i <= 10; i++)
             {
-                var path = ResolvePath(
-                    $"Config/Jsons/JsonFilesystems/Filesystem_{i}.json",
-                    $"Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_{i}.json"
-                );
+                var filename = $"Filesystem_{i}.json";
+                var filePath = $"Config/Jsons/JsonFilesystems/{filename}";
+                var resourcePath = $"Config/Jsons/JsonFilesystems/Filesystem_{i}";
 
-                // === Debug 1: Print raw JSON before deserialization ===
-                if (File.Exists(path))
+                // Debug 1: Print raw JSON before deserialization
+                var raw = LoadJson(filePath, resourcePath);
+                if (raw != null)
                 {
-                    var raw = File.ReadAllText(path);
-                    DebugUtility.PrintContext("FS", $"==== RAW JSON FOR {path} ====");
+                    DebugUtility.PrintContext("FS", $"==== RAW JSON FOR {filePath} / {resourcePath} ====");
                     DebugUtility.PrintContext("FS", raw);
                     DebugUtility.PrintContext("FS", "==================");
                 }
 
-                var fs = LoadFilesystem(path, out var fsErrors);
+                var fs = LoadFilesystem(filePath, resourcePath, out var fsErrors);
 
-                // === Debug 2: Print fs.Root state after deserialization ===
+                // Debug 2: Print fs.Root state after deserialization
                 if (fs != null)
                 {
                     DebugUtility.PrintContext("FS", $"fs.Root is null? {(fs.Root == null)}");
@@ -95,31 +96,29 @@ namespace Env0.Terminal.Config
                     else
                         DebugUtility.PrintContext("FS", "fs.Root keys: null");
 
-                    // === Debug 3: Print tutorial.txt content if present ===
+                    // Debug 3: Print tutorial.txt content if present
                     if (fs.Root != null && fs.Root.ContainsKey("tutorial.txt"))
                         DebugUtility.PrintContext("FS", $"tutorial.txt content (from loader): {fs.Root["tutorial.txt"].Content ?? "NULL"}");
                     else
                         DebugUtility.PrintContext("FS", "tutorial.txt not found in fs.Root!");
                 }
 
-                Filesystems[$"Filesystem_{i}.json"] = fs;
+                Filesystems[filename] = fs;
                 ValidationErrors.AddRange(fsErrors);
             }
 
             // Filesystem_11.json (safe fallback)
-            var safePath = ResolvePath(
-                "Config/Jsons/JsonFilesystems/Filesystem_11.json",
-                "Env0.Terminal/Config/Jsons/JsonFilesystems/Filesystem_11.json"
-            );
-            if (File.Exists(safePath))
+            var safeFile = "Config/Jsons/JsonFilesystems/Filesystem_11.json";
+            var safeResource = "Config/Jsons/JsonFilesystems/Filesystem_11";
+            var safeRaw = LoadJson(safeFile, safeResource);
+            if (safeRaw != null)
             {
-                var raw = File.ReadAllText(safePath);
-                DebugUtility.PrintContext("FS", $"==== RAW JSON FOR {safePath} ====");
-                DebugUtility.PrintContext("FS", raw);
+                DebugUtility.PrintContext("FS", $"==== RAW JSON FOR {safeFile} / {safeResource} ====");
+                DebugUtility.PrintContext("FS", safeRaw);
                 DebugUtility.PrintContext("FS", "==================");
             }
 
-            var safeFs = LoadFilesystem(safePath, out var safeErrors);
+            var safeFs = LoadFilesystem(safeFile, safeResource, out var safeErrors);
 
             if (safeFs != null)
             {
@@ -134,19 +133,18 @@ namespace Env0.Terminal.Config
             ValidationErrors.AddRange(safeErrors);
         }
 
-        // --- Rest of your methods are unchanged! ---
-
-        internal static BootConfig LoadBootConfig(string path, out List<string> errors)
+        internal static BootConfig LoadBootConfig(string filePath, string resourcePath, out List<string> errors)
         {
             errors = new List<string>();
-            if (!File.Exists(path))
+            var json = LoadJson(filePath, resourcePath);
+
+            if (string.IsNullOrEmpty(json))
             {
-                errors.Add($"BootConfig missing: {path}");
+                errors.Add($"BootConfig missing: {filePath} / {resourcePath}");
                 return null;
             }
             try
             {
-                var json = File.ReadAllText(path);
                 var config = JsonConvert.DeserializeObject<BootConfig>(json);
                 if (config?.BootText == null || config.BootText.Count == 0)
                     errors.Add("BootConfig: BootText is missing or empty.");
@@ -159,19 +157,19 @@ namespace Env0.Terminal.Config
             }
         }
 
-        internal static UserConfig LoadUserConfig(string path, out List<string> errors)
+        internal static UserConfig LoadUserConfig(string filePath, string resourcePath, out List<string> errors)
         {
             errors = new List<string>();
+            var json = LoadJson(filePath, resourcePath);
 
-            if (!File.Exists(path))
+            if (string.IsNullOrEmpty(json))
             {
-                errors.Add($"UserConfig missing: {path} (defaulting to player/password)");
+                errors.Add($"UserConfig missing: {filePath} / {resourcePath} (defaulting to player/password)");
                 return new UserConfig { Username = "player", Password = "password" };
             }
 
             try
             {
-                var json = File.ReadAllText(path);
                 var config = JsonConvert.DeserializeObject<UserConfig>(json);
 
                 if (string.IsNullOrWhiteSpace(config?.Username) || string.IsNullOrWhiteSpace(config?.Password))
@@ -195,19 +193,19 @@ namespace Env0.Terminal.Config
             }
         }
 
-        internal static List<DeviceInfo> LoadDevices(string path, out List<string> errors)
+        internal static List<DeviceInfo> LoadDevices(string filePath, string resourcePath, out List<string> errors)
         {
             errors = new List<string>();
+            var json = LoadJson(filePath, resourcePath);
 
-            if (!File.Exists(path))
+            if (string.IsNullOrEmpty(json))
             {
-                errors.Add($"Devices missing: {path}");
+                errors.Add($"Devices missing: {filePath} / {resourcePath}");
                 return new List<DeviceInfo>();
             }
 
             try
             {
-                var json = File.ReadAllText(path);
                 var devices = JsonConvert.DeserializeObject<List<DeviceInfo>>(json);
 
                 if (devices == null || devices.Count == 0)
@@ -251,33 +249,33 @@ namespace Env0.Terminal.Config
             }
         }
 
-        public static Env0.Terminal.Config.Pocos.Filesystem LoadFilesystem(string path, out List<string> errors)
+        public static Env0.Terminal.Config.Pocos.Filesystem LoadFilesystem(string filePath, string resourcePath, out List<string> errors)
         {
             errors = new List<string>();
+            var json = LoadJson(filePath, resourcePath);
 
-            if (!File.Exists(path))
+            if (string.IsNullOrEmpty(json))
             {
-                errors.Add($"Filesystem missing: {path}");
+                errors.Add($"Filesystem missing: {filePath} / {resourcePath}");
                 return new Env0.Terminal.Config.Pocos.Filesystem(); // Safe empty FS
             }
 
             try
             {
-                var json = File.ReadAllText(path);
                 var fs = JsonConvert.DeserializeObject<Env0.Terminal.Config.Pocos.Filesystem>(json);
 
                 if (fs?.Root == null || fs.Root.Count == 0)
                 {
-                    errors.Add($"{Path.GetFileName(path)}: Root is missing or empty.");
+                    errors.Add($"{Path.GetFileName(filePath)}: Root is missing or empty.");
                     return new Env0.Terminal.Config.Pocos.Filesystem();
                 }
 
-                ValidateEntries(fs.Root, errors, Path.GetFileName(path), "/");
+                ValidateEntries(fs.Root, errors, Path.GetFileName(filePath), "/");
                 return fs;
             }
             catch (Exception ex)
             {
-                errors.Add($"{Path.GetFileName(path)} failed to load: {ex.Message}");
+                errors.Add($"{Path.GetFileName(filePath)} failed to load: {ex.Message}");
                 return new Env0.Terminal.Config.Pocos.Filesystem();
             }
         }
