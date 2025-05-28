@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+
 namespace Env0.Terminal.Terminal
 {
 public class ParsedCommand

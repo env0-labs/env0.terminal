@@ -1,5 +1,6 @@
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 using Env0.Terminal.Config;
 using Env0.Terminal.Config.Pocos;

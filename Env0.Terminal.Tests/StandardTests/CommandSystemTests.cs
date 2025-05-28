@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Xunit;
 using Env0.Terminal.Terminal;
 using Env0.Terminal.Terminal.Commands;
@@ -83,7 +84,11 @@ namespace Env0.Terminal.Tests
         public void CommandResult_Properties_AreSettable()
         {
             var session = new SessionState();
-            var result = new CommandResult("output", isError: true, requiresPaging: true, stateChanged: true, updatedSession: session);
+            var result = new CommandResult();
+            result.AddLine("output", OutputType.Error);
+            result.RequiresPaging = true;
+            result.StateChanged = true;
+            result.UpdatedSession = session;
 
             Assert.Equal("output", result.Output);
             Assert.True(result.IsError);

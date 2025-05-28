@@ -5,7 +5,7 @@ namespace Env0.Terminal.Terminal
     public class CommandResult
     {
         // Structured output lines with type badges
-        public List<TerminalOutputLine> OutputLines { get; set; } = new();
+        public List<TerminalOutputLine> OutputLines { get; set; } = new List<TerminalOutputLine>();
 
         // Legacy support: concatenated plain output string from OutputLines
         public string Output => OutputLines.Count > 0

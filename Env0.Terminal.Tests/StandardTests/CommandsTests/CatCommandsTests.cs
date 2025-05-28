@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Env0.Terminal.Config.Pocos;
 using Env0.Terminal.Filesystem;
 using Env0.Terminal.Terminal;

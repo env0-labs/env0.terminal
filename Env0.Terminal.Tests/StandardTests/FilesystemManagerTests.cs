@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 using System.Collections.Generic;
 using Env0.Terminal.Config.Pocos;

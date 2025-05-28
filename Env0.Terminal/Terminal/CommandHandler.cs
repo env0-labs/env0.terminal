@@ -6,7 +6,7 @@ namespace Env0.Terminal.Terminal
 {
     public class CommandHandler
     {
-        private readonly Dictionary<string, ICommand> _commands = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ICommand> _commands = new Dictionary<string, ICommand>(StringComparer.OrdinalIgnoreCase);
 
         public CommandHandler(bool debugMode)
         {
