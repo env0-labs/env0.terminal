@@ -39,6 +39,14 @@ namespace Env0.Terminal
 
 public void Initialize()
 {
+    
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+    UnityEngine.Debug.Log("TEST: Entered Initialize()");
+#else
+    System.Console.WriteLine("TEST: Entered Initialize()");
+#endif
+
+    
 #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
     Env0.Terminal.Config.JsonLoaderUnity.LoadAll();
 
@@ -57,6 +65,17 @@ public void Initialize()
     var fsPoco = Env0.Terminal.Config.JsonLoader.Filesystems.ContainsKey("Filesystem_1.json")
         ? Env0.Terminal.Config.JsonLoader.Filesystems["Filesystem_1.json"]
         : null;
+#endif
+
+    // --- Debug lines for troubleshooting ---
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+    UnityEngine.Debug.Log($"Devices count: {(devices == null ? "null" : devices.Count.ToString())}");
+    UnityEngine.Debug.Log($"fsPoco null? {fsPoco == null}");
+    UnityEngine.Debug.Log($"fsPoco.Root null? {(fsPoco == null ? "n/a" : (fsPoco.Root == null ? "yes" : "no"))}");
+#else
+    System.Console.WriteLine($"Devices count: {(devices == null ? "null" : devices.Count.ToString())}");
+    System.Console.WriteLine($"fsPoco null? {fsPoco == null}");
+    System.Console.WriteLine($"fsPoco.Root null? {(fsPoco == null ? "n/a" : (fsPoco.Root == null ? "yes" : "no"))}");
 #endif
 
     if (devices == null || devices.Count == 0 || fsPoco == null)
@@ -98,6 +117,7 @@ public void Initialize()
     _capturedUsername = null;
     _capturedPassword = null;
 }
+
 
 
         public TerminalRenderState Execute(string input)

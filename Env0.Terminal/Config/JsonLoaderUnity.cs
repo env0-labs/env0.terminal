@@ -3,34 +3,22 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Linq;
 
-
 #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
 using UnityEngine;
 #endif
 
-// Add the correct namespace for POCO classes (if missing)
 using Env0.Terminal.Config.Pocos;
 
 namespace Env0.Terminal.Config
 {
     public static class JsonLoaderUnity
     {
-        // Loaded configs
         public static BootConfig BootConfig { get; private set; }
         public static UserConfig UserConfig { get; private set; }
-
-        // Devices
         public static List<DeviceInfo> Devices { get; private set; } = new List<DeviceInfo>();
-
-        // Filesystems (keyed by filename, e.g., "Filesystem_1.json")
         public static Dictionary<string, Pocos.Filesystem> Filesystems { get; private set; } = new Dictionary<string, Pocos.Filesystem>();
-
-        // Validation errors (visible in debug)
         public static List<string> ValidationErrors { get; private set; } = new List<string>();
 
-        /// <summary>
-        /// Loads JSON from Unity's Resources folder.
-        /// </summary>
         private static string LoadJsonFromResources(string resourcePath)
         {
 #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
@@ -38,65 +26,41 @@ namespace Env0.Terminal.Config
             if (textAsset != null)
                 return textAsset.text;
 #endif
-            return null; // Just return null outside Unity
+            return null;
         }
 
         public static void LoadAll()
         {
             ValidationErrors.Clear();
 
-            // BootConfig (Unity Resources)
-            BootConfig = LoadBootConfig(
-                "Config/Jsons/BootConfig", // No file extension
-                out var bootErrors
-            );
+            // BootConfig
+            BootConfig = LoadBootConfig("Config/Jsons/BootConfig", out var bootErrors);
             ValidationErrors.AddRange(bootErrors);
 
-            // UserConfig (Unity Resources)
-            UserConfig = LoadUserConfig(
-                "Config/Jsons/UserConfig", // No file extension
-                out var userErrors
-            );
+            // UserConfig
+            UserConfig = LoadUserConfig("Config/Jsons/UserConfig", out var userErrors);
             ValidationErrors.AddRange(userErrors);
 
-            // Devices (Unity Resources)
-            Devices = LoadDevices(
-                "Config/Jsons/Devices", // No file extension
-                out var deviceErrors
-            );
+            // Devices
+            Devices = LoadDevices("Config/Jsons/Devices", out var deviceErrors);
             ValidationErrors.AddRange(deviceErrors);
 
-            // Filesystems 1-10 (Unity Resources)
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+            DebugUtility.PrintContext("DEBUG", $"[Devices.json] Devices is null? {Devices == null}");
+            DebugUtility.PrintContext("DEBUG", $"[Devices.json] Devices count: {(Devices == null ? "null" : Devices.Count.ToString())}");
+#endif
+
+            // Filesystems 1-10
             for (var i = 1; i <= 10; i++)
             {
                 var filename = $"Filesystem_{i}";
-                var resourcePath = $"Config/Jsons/JsonFilesystems/Filesystem_{i}"; // Unity uses path without .json extension
+                var resourcePath = $"Config/Jsons/JsonFilesystems/Filesystem_{i}";
+                var fs = LoadFilesystemFromResources(resourcePath, out var fsErrors);
 
-                // Debug: Print raw JSON before deserialization
-                var raw = LoadJsonFromResources(resourcePath);
-                if (raw != null)
-                {
-                    DebugUtility.PrintContext("FS", $"==== RAW JSON FOR {resourcePath} ====");
-                    DebugUtility.PrintContext("FS", raw);
-                    DebugUtility.PrintContext("FS", "==================");
-                }
-
-                Pocos.Filesystem fs = LoadFilesystemFromResources(resourcePath, out var fsErrors);
-
-                // Debug: Print fs.Root state after deserialization
-                if (fs != null)
-                {
-                    DebugUtility.PrintContext("FS", $"fs.Root is null? {fs.Root == null}");
-                    if (fs.Root != null)
-                        DebugUtility.PrintContext("FS", $"fs.Root keys: {string.Join(", ", fs.Root.Keys)}");
-                    else
-                        DebugUtility.PrintContext("FS", "fs.Root keys: null");
-
-                    if (fs.Root != null && fs.Root.ContainsKey("tutorial.txt"))
-                        DebugUtility.PrintContext("FS", $"tutorial.txt content (from loader): {fs.Root["tutorial.txt"].Content ?? "NULL"}");
-                    else
-                        DebugUtility.PrintContext("FS", "tutorial.txt not found in fs.Root!");
-                }
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+                DebugUtility.PrintContext("DEBUG", $"[{filename}] fs is null? {fs == null}");
+                DebugUtility.PrintContext("DEBUG", $"[{filename}] fs.Root is null? {(fs == null ? "n/a" : (fs.Root == null ? "yes" : "no"))}");
+#endif
 
                 Filesystems[filename] = fs;
                 ValidationErrors.AddRange(fsErrors);
@@ -228,7 +192,7 @@ namespace Env0.Terminal.Config
             if (string.IsNullOrEmpty(json))
             {
                 errors.Add($"Filesystem missing: {resourcePath}");
-                return new Pocos.Filesystem(); // Safe empty FS
+                return new Pocos.Filesystem();
             }
 
             try
