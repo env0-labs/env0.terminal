@@ -1,5 +1,5 @@
 {
-  "root": {
+  "Root": {
     "filesystem_3.txt": {
       "type": "file",
       "content": "Corporate Admin Server\nContains tools and audit logs. Access restricted (in theory)."

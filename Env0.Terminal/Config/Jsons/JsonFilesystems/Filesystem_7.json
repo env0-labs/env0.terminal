@@ -1,5 +1,5 @@
 {
-  "root": {
+  "Root": {
     "filesystem_7.txt": {
       "type": "file",
       "content": "Corrupted System\nFilesystem is partially unreadable. Strange files everywhere."

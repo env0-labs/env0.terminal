@@ -1,5 +1,5 @@
 {
-  "root": {
+  "Root": {
     "filesystem_9.txt": {
       "type": "file",
       "content": "Old Research Workstation\nRetired user, forgotten projects, and abandoned dreams."

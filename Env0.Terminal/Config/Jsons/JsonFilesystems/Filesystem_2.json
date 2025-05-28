@@ -1,5 +1,5 @@
 {
-  "root": {
+  "Root": {
     "filesystem_2.txt": {
       "type": "file",
       "content": "Old Forgotten Server\nThis system hasn't been used in years. It's dusty and full of ancient files no one's touched in a decade."

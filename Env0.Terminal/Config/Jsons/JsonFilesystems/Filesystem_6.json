@@ -1,5 +1,5 @@
 {
-  "root": {
+  "Root": {
     "filesystem_6.txt": {
       "type": "file",
       "content": "Network Router\nConfiguration and diagnostics. Do not tamper!"

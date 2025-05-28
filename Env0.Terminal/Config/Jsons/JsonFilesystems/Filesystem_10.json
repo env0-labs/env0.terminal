@@ -1,5 +1,5 @@
 {
-  "root": {
+  "Root": {
     "filesystem_10.txt": {
       "type": "file",
       "content": "IoT Sensor Device\nCollects and uploads environmental data. Not designed for humans."

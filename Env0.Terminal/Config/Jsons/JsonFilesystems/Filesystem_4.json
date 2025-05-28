@@ -1,5 +1,5 @@
 {
-  "root": {
+  "Root": {
     "filesystem_4.txt": {
       "type": "file",
       "content": "Printer Device\nThis is not a real computer. Spool files and configs only."

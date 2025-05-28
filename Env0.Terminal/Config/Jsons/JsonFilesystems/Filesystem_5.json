@@ -1,5 +1,5 @@
 {
-  "root": {
+  "Root": {
     "filesystem_5.txt": {
       "type": "file",
       "content": "Lab Machine\nUsed by the science team for experiments and side projects."
