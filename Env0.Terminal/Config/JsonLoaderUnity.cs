@@ -45,10 +45,12 @@ namespace Env0.Terminal.Config
             Devices = LoadDevices("Config/Jsons/Devices", out var deviceErrors);
             ValidationErrors.AddRange(deviceErrors);
 
-#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+            
+                        
+        #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
             DebugUtility.PrintContext("DEBUG", $"[Devices.json] Devices is null? {Devices == null}");
             DebugUtility.PrintContext("DEBUG", $"[Devices.json] Devices count: {(Devices == null ? "null" : Devices.Count.ToString())}");
-#endif
+        #endif
 
             // Filesystems 1-10
             for (var i = 1; i <= 10; i++)
@@ -141,6 +143,12 @@ namespace Env0.Terminal.Config
 
             try
             {
+            #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+                Debug.Log("[DEBUG] Devices.json about to be parsed:\n" + json);
+                Debug.Log("[DEBUG] Devices.json length: " + (json == null ? "NULL" : json.Length.ToString()));
+                Debug.Log("[DEBUG] Devices.json first 20 chars: " + (string.IsNullOrEmpty(json) ? "NULL/EMPTY" : (json.Length > 20 ? json.Substring(0, 20) : json)));
+            #endif
+
                 var devices = JsonConvert.DeserializeObject<List<DeviceInfo>>(json);
 
                 if (devices == null || devices.Count == 0)

@@ -53,17 +53,26 @@ public void Initialize()
     var bootConfig = Env0.Terminal.Config.JsonLoaderUnity.BootConfig;
     var userConfig = Env0.Terminal.Config.JsonLoaderUnity.UserConfig;
     var devices = Env0.Terminal.Config.JsonLoaderUnity.Devices;
-    var fsPoco = Env0.Terminal.Config.JsonLoaderUnity.Filesystems.ContainsKey("Filesystem_1.json")
-        ? Env0.Terminal.Config.JsonLoaderUnity.Filesystems["Filesystem_1.json"]
+    var fsPoco = Env0.Terminal.Config.JsonLoaderUnity.Filesystems.ContainsKey("Filesystem_1")
+        ? Env0.Terminal.Config.JsonLoaderUnity.Filesystems["Filesystem_1"]
         : null;
+    
+    #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+    UnityEngine.Debug.Log("[API DEBUG] Devices == null? " + (devices == null));
+    UnityEngine.Debug.Log("[API DEBUG] Devices.Count == 0? " + (devices != null && devices.Count == 0));
+    UnityEngine.Debug.Log("[API DEBUG] BootConfig null? " + (bootConfig == null));
+    UnityEngine.Debug.Log("[API DEBUG] UserConfig null? " + (userConfig == null));
+    UnityEngine.Debug.Log("[API DEBUG] fsPoco null? " + (fsPoco == null));
+#endif
+
 #else
     Env0.Terminal.Config.JsonLoader.LoadAll();
 
     var bootConfig = Env0.Terminal.Config.JsonLoader.BootConfig;
     var userConfig = Env0.Terminal.Config.JsonLoader.UserConfig;
     var devices = Env0.Terminal.Config.JsonLoader.Devices;
-    var fsPoco = Env0.Terminal.Config.JsonLoader.Filesystems.ContainsKey("Filesystem_1.json")
-        ? Env0.Terminal.Config.JsonLoader.Filesystems["Filesystem_1.json"]
+    var fsPoco = Env0.Terminal.Config.JsonLoader.Filesystems.ContainsKey("Filesystem_1")
+        ? Env0.Terminal.Config.JsonLoader.Filesystems["Filesystem_1"]
         : null;
 #endif
 
@@ -79,7 +88,7 @@ public void Initialize()
 #endif
 
     if (devices == null || devices.Count == 0 || fsPoco == null)
-        throw new System.Exception("Critical config missing: Devices or Filesystem_1.json");
+        throw new System.Exception("Critical config missing: Devices or Filesystem_1");
 
     var fsRootNode = new FileEntry { Children = fsPoco.Root };
     _filesystemManager = FilesystemManager.FromPocoRoot(fsRootNode);
