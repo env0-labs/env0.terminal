@@ -37,56 +37,68 @@ namespace Env0.Terminal
 
         private TerminalPhase _phase = TerminalPhase.Booting;
 
-        public void Initialize()
-        {
-            JsonLoader.LoadAll();
+public void Initialize()
+{
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+    Env0.Terminal.Config.JsonLoaderUnity.LoadAll();
 
-            var bootConfig = JsonLoader.BootConfig;
-            var userConfig = JsonLoader.UserConfig;
-            var devices = JsonLoader.Devices;
-            var fsPoco = JsonLoader.Filesystems.ContainsKey("Filesystem_1.json")
-                ? JsonLoader.Filesystems["Filesystem_1.json"]
-                : null;
+    var bootConfig = Env0.Terminal.Config.JsonLoaderUnity.BootConfig;
+    var userConfig = Env0.Terminal.Config.JsonLoaderUnity.UserConfig;
+    var devices = Env0.Terminal.Config.JsonLoaderUnity.Devices;
+    var fsPoco = Env0.Terminal.Config.JsonLoaderUnity.Filesystems.ContainsKey("Filesystem_1.json")
+        ? Env0.Terminal.Config.JsonLoaderUnity.Filesystems["Filesystem_1.json"]
+        : null;
+#else
+    Env0.Terminal.Config.JsonLoader.LoadAll();
 
-            if (devices == null || devices.Count == 0 || fsPoco == null)
-                throw new System.Exception("Critical config missing: Devices or Filesystem_1.json");
+    var bootConfig = Env0.Terminal.Config.JsonLoader.BootConfig;
+    var userConfig = Env0.Terminal.Config.JsonLoader.UserConfig;
+    var devices = Env0.Terminal.Config.JsonLoader.Devices;
+    var fsPoco = Env0.Terminal.Config.JsonLoader.Filesystems.ContainsKey("Filesystem_1.json")
+        ? Env0.Terminal.Config.JsonLoader.Filesystems["Filesystem_1.json"]
+        : null;
+#endif
 
-            var fsRootNode = new FileEntry { Children = fsPoco.Root };
-            _filesystemManager = FilesystemManager.FromPocoRoot(fsRootNode);
+    if (devices == null || devices.Count == 0 || fsPoco == null)
+        throw new System.Exception("Critical config missing: Devices or Filesystem_1.json");
 
-            var localDevice = devices[0];
-            _networkManager = new NetworkManager(devices, localDevice);
-            _sshHandler = new SSHHandler(_networkManager);
+    var fsRootNode = new FileEntry { Children = fsPoco.Root };
+    _filesystemManager = FilesystemManager.FromPocoRoot(fsRootNode);
 
-            _session = new SessionState
-            {
-                Username = userConfig.Username,
-                Password = userConfig.Password,
-                Hostname = localDevice.Hostname,
-                Domain = "",
-                CurrentWorkingDirectory = "/",
-                FilesystemManager = _filesystemManager,
-                NetworkManager = _networkManager,
-                DeviceInfo = localDevice
-            };
+    var localDevice = devices[0];
+    _networkManager = new NetworkManager(devices, localDevice);
+    _sshHandler = new SSHHandler(_networkManager);
 
-            _stateManager = new TerminalStateManager();
-            _commandParser = new CommandParser();
-            _commandHandler = new CommandHandler(_session.DebugMode);
-            _loginHandler = new LoginHandler();
+    _session = new SessionState
+    {
+        Username = userConfig.Username,
+        Password = userConfig.Password,
+        Hostname = localDevice.Hostname,
+        Domain = "",
+        CurrentWorkingDirectory = "/",
+        FilesystemManager = _filesystemManager,
+        NetworkManager = _networkManager,
+        DeviceInfo = localDevice
+    };
 
-            _initialized = true;
-            _phase = TerminalPhase.Booting;
-            _bootShown = false;
+    _stateManager = new TerminalStateManager();
+    _commandParser = new CommandParser();
+    _commandHandler = new CommandHandler(_session.DebugMode);
+    _loginHandler = new LoginHandler();
 
-            _loginMode = LoginMode.None;
-            _loginStep = LoginStep.None;
-            _pendingSshTarget = null;
-            _pendingSshDevice = null;
-            _pendingSshUser = null;
-            _capturedUsername = null;
-            _capturedPassword = null;
-        }
+    _initialized = true;
+    _phase = TerminalPhase.Booting;
+    _bootShown = false;
+
+    _loginMode = LoginMode.None;
+    _loginStep = LoginStep.None;
+    _pendingSshTarget = null;
+    _pendingSshDevice = null;
+    _pendingSshUser = null;
+    _capturedUsername = null;
+    _capturedPassword = null;
+}
+
 
         public TerminalRenderState Execute(string input)
         {
