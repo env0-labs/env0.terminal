@@ -19,7 +19,7 @@ namespace Env0.Terminal.Config.Pocos
         public string Filesystem { get; set; } = "";
         public string Motd { get; set; } = "";
         public string Description { get; set; } = "";
-        public List<string> Ports { get; set; } = new();
-        public List<DeviceInterface> Interfaces { get; set; } = new();
+        public List<string> Ports { get; set; } = new List<string>();
+        public List<DeviceInterface> Interfaces { get; set; } = new List<DeviceInterface>();
     }
 }
