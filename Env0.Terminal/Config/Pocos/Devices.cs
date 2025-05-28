@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+
+
 namespace Env0.Terminal.Config.Pocos
 {
     public class DeviceInterface
