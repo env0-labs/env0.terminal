@@ -47,21 +47,21 @@ namespace Env0.Terminal.Config
 
             // BootConfig (Unity Resources)
             BootConfig = LoadBootConfig(
-                "Jsons/BootConfig", // No file extension
+                "Config/Jsons/BootConfig", // No file extension
                 out var bootErrors
             );
             ValidationErrors.AddRange(bootErrors);
 
             // UserConfig (Unity Resources)
             UserConfig = LoadUserConfig(
-                "Jsons/UserConfig", // No file extension
+                "Config/Jsons/UserConfig", // No file extension
                 out var userErrors
             );
             ValidationErrors.AddRange(userErrors);
 
             // Devices (Unity Resources)
             Devices = LoadDevices(
-                "Jsons/Devices", // No file extension
+                "Config/Jsons/Devices", // No file extension
                 out var deviceErrors
             );
             ValidationErrors.AddRange(deviceErrors);
@@ -70,7 +70,7 @@ namespace Env0.Terminal.Config
             for (var i = 1; i <= 10; i++)
             {
                 var filename = $"Filesystem_{i}";
-                var resourcePath = $"Jsons/JsonFilesystems/Filesystem_{i}"; // Unity uses path without .json extension
+                var resourcePath = $"Config/Jsons/JsonFilesystems/Filesystem_{i}"; // Unity uses path without .json extension
 
                 // Debug: Print raw JSON before deserialization
                 var raw = LoadJsonFromResources(resourcePath);
