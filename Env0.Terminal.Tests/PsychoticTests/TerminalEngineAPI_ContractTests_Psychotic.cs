@@ -216,7 +216,7 @@ namespace Env0.Terminal.Tests
         // === 7. Concurrency/Threaded Hell ===
 
         [Fact]
-        public void Execute_ConcurrentCalls_DoNotCrashOrDesync()
+        public async Task Execute_ConcurrentCalls_DoNotCrashOrDesync()
         {
             var api = new TerminalEngineAPI();
             api.Initialize();
@@ -226,10 +226,10 @@ namespace Env0.Terminal.Tests
                 Task.Run(() => api.Execute(i % 2 == 0 ? "ls" : "cd /"))
             ).ToArray();
 
-            Task.WaitAll(tasks);
+            await Task.WhenAll(tasks);
 
             foreach (var t in tasks)
-                Assert.NotNull(((Task<TerminalRenderState>)t).Result);
+                Assert.NotNull(await t);
         }
 
         // === 8. MOTD, Prompt, and Banner Sanity ===
