@@ -15,33 +15,69 @@ public class PsychoticCommandParserTests
 {
     // --- SKIPPED/COMMENTED TESTS (impossible to trigger or out of project scope) ---
 
-    // Users cannot enter Unicode/control chars from the keyboard; test not needed.
-    // [Fact(Skip = "Terminal input is keyboard-only; users cannot enter Unicode/control chars.")]
-    // public void Parse_CommandWithUnicodeAndControlChars() { }
+    [Fact]
+    public void Parse_CommandWithUnicodeAndControlChars()
+    {
+        var parser = new CommandParser();
+        var input = "ls \u0001\u0002\u0003";
+        var result = parser.Parse(input);
+        Assert.NotNull(result);
+        Assert.Equal("ls", result.CommandName);
+    }
 
-    // Terminal input is keyboard-only; zero-width/odd whitespace impossible.
-    // [Fact(Skip = "Terminal input is keyboard-only; zero-width/odd whitespace impossible.")]
-    // public void Parse_CommandWithZeroWidthSpaceAndWeirdWhitespace() { }
+    [Fact]
+    public void Parse_CommandWithZeroWidthSpaceAndWeirdWhitespace()
+    {
+        var parser = new CommandParser();
+        var input = "ls \u200B -la";
+        var result = parser.Parse(input);
+        Assert.NotNull(result);
+        Assert.Equal("ls", result.CommandName);
+    }
 
-    // Complex quoted argument parsing is not needed in UX; command syntax does not support it.
-    // [Fact(Skip = "No support/need for complex quoted argument parsing in UX.")]
-    // public void Parse_CommandWithQuotedArgumentsAndEscapes() { }
+    [Fact]
+    public void Parse_CommandWithQuotedArgumentsAndEscapes()
+    {
+        var parser = new CommandParser();
+        var result = parser.Parse("echo \"hello world\"");
+        Assert.NotNull(result);
+        Assert.Equal("echo", result.CommandName);
+        Assert.Equal(new[] { "\"hello", "world\"" }, result.Arguments);
+    }
 
-    // Dangerous unicode arguments not possible via keyboard input.
-    // [Fact(Skip = "Dangerous unicode arguments not possible via keyboard input.")]
-    // public void Parse_CommandWithArgumentsContainingDangerousUnicode() { }
+    [Fact]
+    public void Parse_CommandWithArgumentsContainingDangerousUnicode()
+    {
+        var parser = new CommandParser();
+        var result = parser.Parse("echo \u2620");
+        Assert.NotNull(result);
+        Assert.Equal("echo", result.CommandName);
+        Assert.Single(result.Arguments);
+    }
 
-    // Whitespace-only input cannot occur in UX; test not needed.
-    // [Fact(Skip = "Whitespace-only input cannot occur in UX; test not needed.")]
-    // public void Parse_OnlyWhitespaceOrGarbage() { }
+    [Fact]
+    public void Parse_OnlyWhitespaceOrGarbage()
+    {
+        var parser = new CommandParser();
+        Assert.Null(parser.Parse("   "));
+    }
 
-    // Weird mixed separators (e.g., exotic punctuation as argument separators) cannot be entered via terminal UX.
-    // [Fact(Skip = "Weird mixed separators cannot be entered via terminal UX.")]
-    // public void Parse_CommandWithMixedSeparators() { }
+    [Fact]
+    public void Parse_CommandWithMixedSeparators()
+    {
+        var parser = new CommandParser();
+        var result = parser.Parse("ls,./;./");
+        Assert.NotNull(result);
+    }
 
-    // Broken UTF-8 input is impossible from keyboard or normal system usage.
-    // [Fact(Skip = "Broken UTF-8 input is impossible from keyboard.")]
-    // public void Parse_CommandWithNonAsciiAndBrokenUtf8() { }
+    [Fact]
+    public void Parse_CommandWithNonAsciiAndBrokenUtf8()
+    {
+        var parser = new CommandParser();
+        var result = parser.Parse("echo caf\u00e9");
+        Assert.NotNull(result);
+        Assert.Equal("echo", result.CommandName);
+    }
 
     // --- TESTS THAT COVER ACTUAL EDGE/REALISTIC CASES ---
 

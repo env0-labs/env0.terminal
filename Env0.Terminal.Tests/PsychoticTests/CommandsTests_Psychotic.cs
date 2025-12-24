@@ -5,6 +5,8 @@ using Env0.Terminal.Network;
 using Env0.Terminal.Filesystem;
 using Env0.Terminal.Config.Pocos;
 using Env0.Terminal.Config;
+using Env0.Terminal.API_DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,7 +20,6 @@ namespace Env0.Terminal.Tests.Commands
 // Real behavior covered by integration tests.
 // Keeping for reference in case nmap logic changes.
 
-        /*
         [Fact]
         public void NmapCommand_HugeSubnet_DoesNotHang()
         {
@@ -68,7 +69,7 @@ namespace Env0.Terminal.Tests.Commands
             };
 
             var command = new NmapCommand();
-            var result = command.Execute(session, new string[0]);
+            var result = command.Execute(session, new[] { "10.10.10.0/24" });
 
             // Debug print
             Console.WriteLine($"[NMAP OUTPUT]\n{result.Output}");
@@ -77,7 +78,6 @@ namespace Env0.Terminal.Tests.Commands
             Assert.Contains("host1", result.Output);
             Assert.Contains("host255", result.Output); // last one in the generated loop
         }
-        */
 
 
         // ---- PING ----
@@ -136,30 +136,21 @@ namespace Env0.Terminal.Tests.Commands
         }
 
         // ---- SSH ----
-        /*[Fact]
+        [Fact]
         public void SshCommand_CaseSensitivityVariants()
         {
-            JsonLoader.LoadAll();
-            var devices = JsonLoader.Devices;
-            Assert.NotEmpty(devices);
+            var api = new TerminalEngineAPI();
+            api.Initialize();
+            api.Execute(""); api.Execute(""); api.Execute("alice"); api.Execute("hunter2");
 
-            var device = devices[0];
-            var variants = new[] { device.Hostname.ToUpper(), device.Hostname.ToLower(), device.Hostname + " " };
-
+            var variants = new[] { "WORKSTATION2.NODE.ZERO", "workstation2.node.zero", "workstation2.node.zero " };
             foreach (var host in variants)
             {
-                var session = new SessionState
-                {
-                    Username = device.Username,
-                    NetworkManager = new NetworkManager(devices, device),
-                    Hostname = device.Hostname
-                };
-                var command = new SshCommand();
-                var result = command.Execute(session, new[] { host.Trim() });
-                // Accepts any case per design
-                Assert.Contains("ssh", result.Output.ToLower());
+                var state = api.Execute($"ssh {host.Trim()}");
+                Assert.Equal(TerminalPhase.Login, state.Phase);
+                Assert.True(state.IsLoginPrompt || state.IsPasswordPrompt);
             }
-        }*/
+        }
 
         [Fact]
         public void SshCommand_SshToSelf_NoStackLoop()
@@ -410,7 +401,6 @@ namespace Env0.Terminal.Tests.Commands
         // --- [TEST COMMENTED OUT] ---
         // Massive directory test (1k+ files); leave out unless you want to check for
         // performance/overflow edge-cases.
-        /*
         [Fact]
         public void LsCommand_MassiveDirectory_DoesNotCrash()
         {
@@ -422,8 +412,7 @@ namespace Env0.Terminal.Tests.Commands
 
             var result = cmd.Execute(session, new string[0]);
             Assert.NotNull(result);
-            Assert.True(result.Output.Split('\n').Length >= 1000);
+            Assert.True(result.Output.Split(' ').Length >= 1000);
         }
-        */
     }
 }

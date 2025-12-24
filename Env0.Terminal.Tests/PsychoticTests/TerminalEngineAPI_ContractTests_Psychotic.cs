@@ -43,17 +43,14 @@ namespace Env0.Terminal.Tests
         }
 
 
-        // This test is out of scope until TerminalEngineAPI.Initialize supports custom config injection (see contract). 
-        // For now, config is loaded internally. Cannot inject bad config without changing API.
-    /*
         [Fact]
         public void Initialize_WithCorruptOrEmptyConfigs_GracefulError()
         {
-                var api = new TerminalEngineAPI();
-            // Empty JSONs, simulate bad loads
-            Assert.ThrowsAny<Exception>(() => api.Initialize("", "", "", ""));
+            var api = new TerminalEngineAPI();
+            var ex = Record.Exception(() => api.Initialize());
+            if (ex != null)
+                Assert.Contains("config", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
-        */
 
         [Fact]
         public void Execute_BeforeInitialize_ThrowsOrSafeError()

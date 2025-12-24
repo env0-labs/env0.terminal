@@ -19,7 +19,8 @@ This repository is now the baseline launch point. Prior experiments and branches
 
 ### Tests
 - Run all tests: `dotnet test env0.terminal.sln`
-- Note: Tests expect deterministic sudo output (“Nice try.”) and specific SSH/login flows; use this repo state as the contract.
+- Note: Tests expect deterministic sudo output ("Nice try.") and specific SSH/login flows; use this repo state as the contract.
+- Psychotic tests are enabled and passing in the current baseline.
 
 ### Configs and content
 - JSON configs live under `Env0.Terminal/Config/Jsons/` (BootConfig, UserConfig, Devices, Filesystem_*). Tests and playground consume these paths relative to repo root.

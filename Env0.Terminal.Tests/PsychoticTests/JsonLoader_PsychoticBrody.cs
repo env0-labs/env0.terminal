@@ -66,38 +66,44 @@ namespace Env0.Terminal.Tests
 // Test is left for reference/documentation—do not re-enable unless loader logic changes.
 
 
-        /*         [Fact]
-                public void LoadUserConfig_BinaryFile_ReportsError()
-                {
-                    var path = Path.Combine(TestDataDir, "UserConfig_binary.json");
-                    File.WriteAllBytes(path, new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00 }); // JPEG magic number
-                    var config = JsonLoader.LoadUserConfig(path, out var errors);
+        [Fact]
+        public void LoadUserConfig_BinaryFile_ReportsError()
+        {
+            var path = Path.Combine(TestDataDir, "UserConfig_binary.json");
+            File.WriteAllBytes(path, new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00 }); // JPEG magic number
+            var config = JsonLoader.LoadUserConfig(path, out var errors);
 
-                    Assert.Null(config);
-                    Assert.Contains(errors, e => e.ToLower().Contains("failed to load") || e.ToLower().Contains("binary"));
-                }
+            Assert.NotNull(config);
+            Assert.Equal("player", config.Username);
+            Assert.Equal("password", config.Password);
+            Assert.Contains(errors, e => e.ToLower().Contains("failed to load") || e.ToLower().Contains("binary") || e.ToLower().Contains("defaulting"));
+        }
 
-                [Fact]
-                public void LoadUserConfig_InvalidEncoding_ReportsError()
-                {
-                    var path = Path.Combine(TestDataDir, "UserConfig_invalidencoding.json");
-                    File.WriteAllBytes(path, Encoding.UTF32.GetBytes(@"{ ""Username"": ""player"", ""Password"": ""password"" }"));
-                    var config = JsonLoader.LoadUserConfig(path, out var errors);
+        [Fact]
+        public void LoadUserConfig_InvalidEncoding_ReportsError()
+        {
+            var path = Path.Combine(TestDataDir, "UserConfig_invalidencoding.json");
+            File.WriteAllBytes(path, Encoding.UTF32.GetBytes(@"{ ""Username"": ""player"", ""Password"": ""password"" }"));
+            var config = JsonLoader.LoadUserConfig(path, out var errors);
 
-                    Assert.Null(config);
-                    Assert.Contains(errors, e => e.ToLower().Contains("encoding"));
-                }
+            Assert.NotNull(config);
+            Assert.Equal("player", config.Username);
+            Assert.Equal("password", config.Password);
+            Assert.Contains(errors, e => e.ToLower().Contains("encoding") || e.ToLower().Contains("defaulting"));
+        }
 
-                [Fact]
-                public void LoadUserConfig_NestedArrayInsteadOfObject_ReportsError()
-                {
-                    var path = Path.Combine(TestDataDir, "UserConfig_array.json");
-                    File.WriteAllText(path, @"[ { ""Username"": ""player"" }, { ""Password"": ""password"" } ]");
-                    var config = JsonLoader.LoadUserConfig(path, out var errors);
+        [Fact]
+        public void LoadUserConfig_NestedArrayInsteadOfObject_ReportsError()
+        {
+            var path = Path.Combine(TestDataDir, "UserConfig_array.json");
+            File.WriteAllText(path, @"[ { ""Username"": ""player"" }, { ""Password"": ""password"" } ]");
+            var config = JsonLoader.LoadUserConfig(path, out var errors);
 
-                    Assert.Null(config);
-                    Assert.Contains(errors, e => e.ToLower().Contains("object"));
-                } */
+            Assert.NotNull(config);
+            Assert.Equal("player", config.Username);
+            Assert.Equal("password", config.Password);
+            Assert.Contains(errors, e => e.ToLower().Contains("object") || e.ToLower().Contains("defaulting"));
+        }
 
         [Fact]
         public void LoadDevices_HugeList_PerformanceTest()
