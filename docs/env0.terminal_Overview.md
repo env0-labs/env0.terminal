@@ -11,7 +11,7 @@ This repository is a fresh baseline. Prior experiments are preserved as historic
 ## What Is This?
 
 env0.terminal is a pure C# logic engine for simulating a fully modular, authentic Linux-style terminal.
-It is designed as a black-box DLL for consumption by any front end (Unity, CLI, etc.), powering narrative, puzzle, or adventure games.
+It is designed as a black-box DLL for consumption by any front end (CLI, custom UI, etc.), powering narrative, puzzle, or adventure games.
 
 - No UI or rendering is included.
 - All terminal, command, filesystem, and network logic is handled within this C# core.

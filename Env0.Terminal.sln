@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Env0.Terminal", "Env0.Terminal\Env0.Terminal.csproj", "{44617CE5-6613-4D05-B46F-1372A5B8E025}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "env0.terminal", "Env0.Terminal\Env0.Terminal.csproj", "{44617CE5-6613-4D05-B46F-1372A5B8E025}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Env0.Terminal.Tests", "Env0.Terminal.Tests\Env0.Terminal.Tests.csproj", "{2F171526-D7F3-4FDD-8F39-D54CE6C29FD8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "env0.terminal.tests", "Env0.Terminal.Tests\Env0.Terminal.Tests.csproj", "{2F171526-D7F3-4FDD-8F39-D54CE6C29FD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Env0.Terminal.Playground", "Env0.Terminal.Playground\Env0.Terminal.Playground.csproj", "{2BB0F1F2-0297-4086-A55E-4C246D183124}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "env0.terminal.playground", "Env0.Terminal.Playground\Env0.Terminal.Playground.csproj", "{2BB0F1F2-0297-4086-A55E-4C246D183124}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

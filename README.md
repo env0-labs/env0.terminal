@@ -1,8 +1,8 @@
-# env0.terminal.unity
+# env0.terminal
 
 A pure C# logic engine for simulating an authentic, modular Linux terminal.  
-**No UI, no rendering, no Unity glue-just robust backend logic.**  
-All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
+**No UI, no rendering, no host glue-just robust backend logic.**  
+All front-end (CLI, custom UI, etc.) interacts with this as a DLL or black-box API.
 
 ---
 
@@ -12,13 +12,13 @@ This repository is now the baseline launch point. Prior experiments and branches
 
 ### Quick start
 - Prereq: .NET SDK 8.0.x installed (`dotnet --list-sdks` to verify).
-- Restore/build: `dotnet restore Env0.Terminal.sln && dotnet build Env0.Terminal.sln`
+- Restore/build: `dotnet restore env0.terminal.sln && dotnet build env0.terminal.sln`
 - Run playground shell: `dotnet run --project Env0.Terminal.Playground`
   - Boot text shows once, then username/password prompts (defaults: `player` / `password`).
   - Commands: `ls`, `cd`, `cat tutorial.txt`, `ssh workstation2.node.zero`, `exit`.
 
 ### Tests
-- Run all tests: `dotnet test Env0.Terminal.sln`
+- Run all tests: `dotnet test env0.terminal.sln`
 - Note: Tests expect deterministic sudo output (“Nice try.”) and specific SSH/login flows; use this repo state as the contract.
 
 ### Configs and content
@@ -29,11 +29,11 @@ This repository is now the baseline launch point. Prior experiments and branches
 
 ## 🚩 What is this Project?
 
-**env0.terminal.unity** is the core simulation for narrative, puzzle, or adventure games built on a Linux-style terminal experience.
+**env0.terminal** is the core simulation for narrative, puzzle, or adventure games built on a Linux-style terminal experience.
 
 - Implements strict Linux-style terminal navigation, file access, and SSH-based network traversal.
 - All world data (filesystems, devices, boot sequences, users) is defined via JSON and fully session-driven.
-- Built to be consumed as a DLL—Unity is one possible host, but the logic is fully standalone.
+- Built to be consumed as a DLL—front-end is one possible host, but the logic is fully standalone.
 - **Note:** All narrative and AAI (Artificial Artificial Intelligence) features are now developed in a separate project. This repository contains only the terminal core logic.
 
 ---
@@ -56,7 +56,7 @@ This is a known-good checkpoint.
 
 ## 📚 Core Principles
 
-- **Pure C# logic.** No UI, no Unity dependencies—strict backend engine.
+- **Pure C# logic.** No UI, no front-end dependencies—strict backend engine.
 - **JSON-driven.** All world content (devices, filesystems, users) is externally defined.
 - **Case-insensitive.** Commands, files, and directories are all case-insensitive.
 - **Read-only.** No file creation/editing in Milestone 1—filesystem is static per session.
@@ -69,7 +69,7 @@ This is a known-good checkpoint.
 
 ## 🖥️ Rendering & UI Separation
 
-- **All rendering, screen clearing, cursor, and visual effects are handled entirely by the consuming application** (CLI, Unity, etc.).  
+- **All rendering, screen clearing, cursor, and visual effects are handled entirely by the consuming application** (CLI, front-end, etc.).  
   This engine provides only logic, state, and output—never visual formatting or presentation.
 
 ---
@@ -85,7 +85,7 @@ The following discipline is enforced for all code and content changes:
    - Includes standard, hostile, and edge-case coverage
 5. Modify for manual test in Playground (if needed)
 6. Commit once happy (atomic, meaningful commit only)
-7. Update the Tasklist (`env0.terminal.unity_tasklist.md`)
+7. Update the Tasklist (`env0.terminal_tasklist.md`)
 
 This process is non-negotiable. All contributors must adhere.
 
@@ -197,8 +197,8 @@ This process is non-negotiable. All contributors must adhere.
       - StateManager_PsychoticBrody.cs
     - FilesystemManagerHostileUserTests.cs
   - .gitignore
-  - Env0.Terminal.sln
-  - env0.terminal.unity.code-workspace
+  - env0.terminal.sln
+  - env0.terminal.code-workspace
   - README.md
 
 ---

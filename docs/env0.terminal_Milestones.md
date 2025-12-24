@@ -108,7 +108,7 @@ Create a visually and sonically authentic “haunted terminal” experience.
 **Scope (directional):**
 - Retro visuals, terminal FX, ambient/interactive audio.
 - Visual and audio feedback matches narrative tone.
-- Presentation handled at the Unity (or chosen frontend) layer, not in core logic.
+- Presentation handled at the front-end (or chosen frontend) layer, not in core logic.
 
 **Status:** Planned (not started)
 

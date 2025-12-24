@@ -255,7 +255,7 @@ Will directories and files have permissions (read-only, hidden), or is everythin
 You said:
 Let's cap it at 4 levels deep. I think most should even be 3 for sanity sake. 
 
-File formats are interesting. Technically 2. Files that are readable (.txt, .bin, .log etc) and executable files (.sh) I'm on the fence on whether we want the complexity of all files being readable and sh files must be made executable... Incidentally executable files will run programs that are outside the scope of milestone 1. They will eventually trigger new scenes in Unity (which will be "programs" they will also be built in C# but totally different projects)
+File formats are interesting. Technically 2. Files that are readable (.txt, .bin, .log etc) and executable files (.sh) I'm on the fence on whether we want the complexity of all files being readable and sh files must be made executable... Incidentally executable files will run programs that are outside the scope of milestone 1. They will eventually trigger new scenes in front-end (which will be "programs" they will also be built in C# but totally different projects)
 
 I'm on the fence for permissions... I think I've decided I want the whole system read only anyway (no mkdir for instance) so it's just hidden or not... 
 
@@ -272,7 +272,7 @@ Locked: 4 levels deep max (most will be 3).
 
 Readable: .txt, .bin, .log (and maybe others for flavor, but all behave identically for now: just plain text).
 
-Executable: .sh only—these don’t do anything in Milestone 1 but will later trigger programs/scenes in Unity.
+Executable: .sh only—these don’t do anything in Milestone 1 but will later trigger programs/scenes in front-end.
 
 Questions/options for file types:
 
@@ -309,7 +309,7 @@ Yeah let's go with "file is executable and cannot be read" for now if cat or rea
 
 We can add extensions in json they don't do anything anyway so we can add flavour as we go!
 
-Incidentally sh won't be the only executable files. I intend in the future to include audio and video files that can be launched with "play" but these will just trigger scenes outside this project in Unity.
+Incidentally sh won't be the only executable files. I intend in the future to include audio and video files that can be launched with "play" but these will just trigger scenes outside this project in front-end.
 
 You know what? Forget permissions for now. Everything is read only and available. 
 
@@ -328,7 +328,7 @@ All other files/extensions are readable (plain text)
 
 Executables:
 
-For now, only .sh (future: audio/video, “play” command, etc. handled by Unity front-end, not core)
+For now, only .sh (future: audio/video, “play” command, etc. handled by front-end, not core)
 
 Permissions:
 
@@ -496,7 +496,7 @@ Any flavor or customization for the prompt itself (e.g., color, symbols, date/ti
 You said:
 Yeah let's go full realistic Linux/Unix errors
 
-Text only. The dll/api (TerminalEngine.cs) is solely there for Unity (or any other front end) to push input text and pull responses. I don't care what it looks like. 
+Text only. The dll/api (TerminalEngine.cs) is solely there for front-end (or any other front end) to push input text and pull responses. I don't care what it looks like. 
 ChatGPT said:
 Perfect—no ambiguity:
 
@@ -506,7 +506,7 @@ System messages: Text only, no formatting/styling; purely handled by front-end, 
 
 Prompt: Dead simple, e.g., <user>@<hostname>:~$, no extra color, symbols, or flair
 
-All display and flair is strictly the responsibility of the Unity (or any) front end—not the C# logic engine.
+All display and flair is strictly the responsibility of the front-end (or any) front end—not the C# logic engine.
 
 Ready for the next question?
 
@@ -975,7 +975,7 @@ Want to lock it in as “no caching” for Milestone 1?
 
 
 You said:
-Yeah no caching. I actually have a plan on the Unity level for that (essentially a whiteboard that players draw out the network structure) so no caching for now. 
+Yeah no caching. I actually have a plan on the front-end level for that (essentially a whiteboard that players draw out the network structure) so no caching for now. 
 ChatGPT said:
 Perfect—no caching for nmap in Milestone 1:
 
@@ -1458,7 +1458,7 @@ If they exit the local SBC (non-SSH), should that fully close the game/terminal,
 How flexible do you want this to be?
 
 You said:
-Yes, yes, yes, ignored for now (that would need to hook into unity and I've no idea how that would work...)
+Yes, yes, yes, ignored for now (that would need to hook into front-end and I've no idea how that would work...)
 
 Incidentally, when ssh'ed two deep, exit should return you to the previous ssh'ed machine NOT to your local machine. 
 ChatGPT said:

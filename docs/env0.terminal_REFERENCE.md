@@ -90,7 +90,7 @@ These are **not bugs**—they are known, accepted deviations from “real Linux�
 
 - **env0.terminal** is a *pure C#* logic engine.
 - All terminal, command, filesystem, and network logic is handled here.
-- No visual/UI, audio, or front-end responsibilities—these are for Unity or any other consumer via DLL.
+- No visual/UI, audio, or front-end responsibilities—these are for front-end or any other consumer via DLL.
 - **Milestone 1 goal:** *Fully functional, Linux-style virtual terminal with local username assignment (no local authentication), SSH (with authentication), strict navigation, JSON-driven filesystems, and a clean CLI command system.*
 
 ---

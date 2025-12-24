@@ -3,7 +3,7 @@
 This file contains historical contract material from prior milestones. It is preserved for context.
 
 True north for the new baseline:
-- Public API may change; we are not constrained by prior Unity integration.
+- Public API may change; we are not constrained by prior front-end integration.
 - The engine remains headless and deterministic, with a single coordination entrypoint.
 - JSON-driven world state remains the default configuration source.
 - Tests define the current contract; update tests and docs together.
@@ -85,7 +85,7 @@ True north for the new baseline:
 | Terminal/DebugManager.cs                       | Controls debug mode toggle, debug command enablement, and debug output sections; collects/logs debug info/errors from all managers | (none) | CommandHandler, TerminalStateManager, all managers needing debug flag or output   |   🚧 (Not implemented)|
 | Terminal/SessionState.cs                       | Stores all session data: username, password, device, cwd, history, SSH stack, debug flag, etc. | (none) | TerminalStateManager, CommandHandler, ICommand, SSHHandler, Playground |      ✅       |
 | Terminal/CommandResult.cs                      | Standardized result object for commands (output string, error, session changes, etc.) | (none) | ICommand, CommandHandler, TerminalStateManager, Playground        |      ✅       |
-| Terminal/TerminalEngineAPI.cs                  | Canonical public API surface for all terminal session logic, including session initialization, command execution, render state, and debug mode. Exposes phases (Booting, Login, Terminal), prompt, output, session stack, and all special flags for front-end/UI control. | See API contract below | Unity front-end, Playground/CLI, tests                             |   🚧 (Contract finalized, implementation next)|
+| Terminal/TerminalEngineAPI.cs                  | Canonical public API surface for all terminal session logic, including session initialization, command execution, render state, and debug mode. Exposes phases (Booting, Login, Terminal), prompt, output, session stack, and all special flags for front-end/UI control. | See API contract below | front-end, Playground/CLI, tests                             |   🚧 (Contract finalized, implementation next)|
 
 ---
 
@@ -171,7 +171,7 @@ Orchestrates all session state, transitions (boot → username assign → shell 
 
 **Used By:**
 - Playground/CLI harness
-- (Future) Unity/Front-end consumer
+- (Future) front-end/Front-end consumer
 
 **Completion:** ✅ Implemented
 
@@ -211,7 +211,7 @@ Provides all debug/dev-only features, toggles, and info for the logic engine. Co
 - TerminalStateManager (to include debug output sections)
 - All core managers (to log internal debug messages or errors)
 - Playground/CLI/test harness (to display debug output)
-- (Future) Unity or front-end layer for dev mode UI
+- (Future) front-end or front-end layer for dev mode UI
 
 **Completion:** 🚧 (Not implemented)
 
@@ -270,7 +270,7 @@ Standard return type for all commands. Encapsulates command output, error messag
 ### TerminalEngineAPI.cs — Contract
 
 **Purpose:**  
-Defines the public interface for the env0.terminal logic engine, for front-end (Unity), Playground, or any CLI/test harness.
+Defines the public interface for the env0.terminal logic engine, for front-end (front-end), Playground, or any CLI/test harness.
 
 **Responsibilities:**
 - Exposes all core functionality as public methods/events (e.g., `SendInput(string command)`, `GetPrompt()`, `GetOutput()`, `GetSessionState()`, etc.).
@@ -282,7 +282,7 @@ Defines the public interface for the env0.terminal logic engine, for front-end (
 ## TerminalEngineAPI – Public Contract
 
 This contract defines the public API surface for `TerminalEngineAPI.cs`, the single entry point for all external interaction with the terminal simulation engine.  
-All front-end (Unity, CLI, test harnesses, etc.) must use this API for all terminal operations.
+All front-end (front-end, CLI, test harnesses, etc.) must use this API for all terminal operations.
 
 ---
 
@@ -390,7 +390,7 @@ public class TerminalEngineAPI
 - UI, audio, rendering, or direct user I/O.
 
 **Used By:**
-- Unity front-end, Playground, test suites.
+- front-end, Playground, test suites.
 
 **Completion:** 🚧 (Not implemented)
 
