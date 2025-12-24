@@ -147,6 +147,11 @@ namespace Env0.Terminal.Config
             try
             {
                 var json = File.ReadAllText(path);
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    errors.Add("BootConfig: file is empty.");
+                    return null;
+                }
                 var config = JsonConvert.DeserializeObject<BootConfig>(json);
                 if (config?.BootText == null || config.BootText.Count == 0)
                     errors.Add("BootConfig: BootText is missing or empty.");
@@ -298,7 +303,7 @@ namespace Env0.Terminal.Config
                 if (entry.Type == "file")
                 {
                     if (entry.Content == null)
-                        errors.Add($"{fsName}: File '{name}' at {path} missing content.");
+                        errors.Add($"{fsName}: File '{name}' at {path} missing 'content'.");
                     if (entry.Children != null)
                         errors.Add($"{fsName}: File '{name}' at {path} should not have children.");
                 }

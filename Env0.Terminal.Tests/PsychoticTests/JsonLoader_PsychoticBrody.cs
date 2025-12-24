@@ -34,7 +34,7 @@ namespace Env0.Terminal.Tests
         public void LoadBootConfig_NullFile_ReportsError()
         {
             var path = Path.Combine(TestDataDir, "BootConfig_nullfile.json");
-            File.WriteAllText(path, (string)null);
+            File.WriteAllText(path, "");
             var config = JsonLoader.LoadBootConfig(path, out var errors);
 
             Assert.Null(config);

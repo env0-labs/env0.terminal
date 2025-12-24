@@ -1,8 +1,29 @@
 # env0.terminal.unity
 
 A pure C# logic engine for simulating an authentic, modular Linux terminal.  
-**No UI, no rendering, no Unity glue—just robust backend logic.**  
+**No UI, no rendering, no Unity glue-just robust backend logic.**  
 All front-end (Unity, CLI, etc.) interacts with this as a DLL or black-box API.
+
+---
+
+## Snapshot / Baseline (December 2025)
+
+This repository is now the baseline launch point. Prior experiments and branches are intentionally abandoned; start from the state described here. Target framework is .NET 8.0 across all projects (`Env0.Terminal`, `Env0.Terminal.Tests`, `Env0.Terminal.Playground`).
+
+### Quick start
+- Prereq: .NET SDK 8.0.x installed (`dotnet --list-sdks` to verify).
+- Restore/build: `dotnet restore Env0.Terminal.sln && dotnet build Env0.Terminal.sln`
+- Run playground shell: `dotnet run --project Env0.Terminal.Playground`
+  - Boot text shows once, then username/password prompts (defaults: `player` / `password`).
+  - Commands: `ls`, `cd`, `cat tutorial.txt`, `ssh workstation2.node.zero`, `exit`.
+
+### Tests
+- Run all tests: `dotnet test Env0.Terminal.sln`
+- Note: Tests expect deterministic sudo output (“Nice try.”) and specific SSH/login flows; use this repo state as the contract.
+
+### Configs and content
+- JSON configs live under `Env0.Terminal/Config/Jsons/` (BootConfig, UserConfig, Devices, Filesystem_*). Tests and playground consume these paths relative to repo root.
+- Canonical behavior is defined by `docs/env0.terminal_REFERENCE.md` and `docs/env0.terminal_Contracts.md`; if behavior and docs diverge, update code or docs to realign.
 
 ---
 
