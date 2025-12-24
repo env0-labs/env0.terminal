@@ -1,3 +1,14 @@
+# Baseline Reset (December 2025)
+
+This file contains historical reference material from prior milestones. It is preserved for context.
+
+True north for the new baseline:
+- The engine is pure backend logic (no UI or rendering).
+- Local login is username assignment only; SSH is the only authenticated path.
+- Commands, filesystem, and network behavior are deterministic and test-driven.
+- No persistence, no shell features beyond the defined command set.
+
+---
 # 🧼 REFERENCE.md — Canonical Project Source (C# Logic Engine, Milestone 1)
 
 > **Project Status: 2025-05-25**

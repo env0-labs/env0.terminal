@@ -1,3 +1,14 @@
+# Baseline Reset (December 2025)
+
+This file contains historical contract material from prior milestones. It is preserved for context.
+
+True north for the new baseline:
+- Public API may change; we are not constrained by prior Unity integration.
+- The engine remains headless and deterministic, with a single coordination entrypoint.
+- JSON-driven world state remains the default configuration source.
+- Tests define the current contract; update tests and docs together.
+
+---
 
 # env0.terminal – Canonical Component Map (Source/Config Only)
 
